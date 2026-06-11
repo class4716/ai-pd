@@ -3,654 +3,657 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>判断题刷题系统 · 错题库专项练习</title>
+    <title>理论判断题 · 错题刷题工具</title>
     <style>
         * {
-            box-sizing: border-box;
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', 'Roboto', 'Noto Sans', sans-serif;
         }
 
         body {
             background: #f1f5f9;
-            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-            padding: 24px 20px;
-            color: #0f172a;
+            padding: 24px 16px;
+            min-height: 100vh;
         }
 
-        /* 主容器: 左侧刷题区 + 右侧错题面板 */
-        .dashboard {
-            max-width: 1400px;
+        /* 主容器 */
+        .app-container {
+            max-width: 1000px;
             margin: 0 auto;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 28px;
-            align-items: flex-start;
         }
 
-        /* 刷题核心卡片 */
-        .quiz-card {
-            flex: 3;
-            min-width: 280px;
+        /* 头部 & 模式切换 */
+        .mode-bar {
+            display: flex;
+            gap: 12px;
             background: white;
-            border-radius: 32px;
-            box-shadow: 0 12px 30px rgba(0,0,0,0.08);
-            overflow: hidden;
+            padding: 8px 16px;
+            border-radius: 60px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            margin-bottom: 24px;
+            justify-content: center;
+        }
+
+        .mode-btn {
+            border: none;
+            background: transparent;
+            padding: 10px 28px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #334155;
+        }
+
+        .mode-btn.active {
+            background: #2c3e66;
+            color: white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .mode-btn:not(.active):hover {
+            background: #e2e8f0;
+        }
+
+        /* 卡片通用样式 */
+        .card {
+            background: white;
+            border-radius: 28px;
+            box-shadow: 0 12px 24px -12px rgba(0,0,0,0.15);
+            padding: 28px 24px;
             transition: all 0.2s;
         }
 
-        /* 错题库面板 */
-        .wrong-notes-panel {
-            flex: 1.2;
-            min-width: 260px;
-            background: white;
-            border-radius: 32px;
-            box-shadow: 0 12px 30px rgba(0,0,0,0.08);
-            padding: 1.5rem 1rem;
-            position: sticky;
-            top: 20px;
-            max-height: 85vh;
-            overflow-y: auto;
+        /* 刷题区域 */
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eef2ff;
+            padding-bottom: 12px;
         }
 
-        /* 头部信息 */
-        .quiz-header {
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            color: white;
-            padding: 1.2rem 2rem;
-        }
-
-        .badge {
-            display: inline-block;
-            background: #38bdf8;
-            font-size: 0.75rem;
-            font-weight: 600;
-            padding: 4px 12px;
+        .q-num {
+            font-size: 1.3rem;
+            font-weight: 700;
+            background: #eef2ff;
+            padding: 4px 14px;
             border-radius: 40px;
-            letter-spacing: 0.5px;
-            margin-bottom: 12px;
-        }
-
-        .progress-text {
-            font-size: 0.9rem;
-            opacity: 0.8;
-            margin-top: 8px;
-        }
-
-        .question-text {
-            font-size: 1.55rem;
-            font-weight: 600;
-            line-height: 1.4;
-            margin: 1rem 0 1.5rem 0;
-            word-break: break-word;
-        }
-
-        /* 选项按钮区域 */
-        .options-area {
-            padding: 0 2rem 1.5rem 2rem;
-        }
-
-        .btn-option {
-            background: #f8fafc;
-            border: 2px solid #e2e8f0;
-            padding: 14px 20px;
-            border-radius: 60px;
-            font-size: 1.1rem;
-            font-weight: 500;
-            width: 100%;
-            margin-bottom: 14px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-align: center;
             color: #1e293b;
         }
 
-        .btn-option:hover {
-            background: #eef2ff;
-            border-color: #94a3b8;
-            transform: translateY(-2px);
+        .wrong-status {
+            font-size: 0.8rem;
+            background: #fee2e2;
+            color: #b91c1c;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-weight: 500;
         }
 
-        .btn-option.correct-feedback {
-            background: #22c55e20;
+        .question-text {
+            font-size: 1.45rem;
+            font-weight: 500;
+            line-height: 1.4;
+            margin: 20px 0 28px 0;
+            color: #0f172a;
+        }
+
+        /* 选项按钮 */
+        .action-buttons {
+            display: flex;
+            gap: 16px;
+            margin: 20px 0 24px;
+            flex-wrap: wrap;
+        }
+
+        .btn-option {
+            flex: 1;
+            padding: 14px 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 60px;
+            cursor: pointer;
+            transition: 0.2s;
+            background: #f8fafc;
+            border: 1.5px solid #cbd5e1;
+            color: #1e293b;
+        }
+
+        .btn-option.correct-btn:hover {
+            background: #dcfce7;
             border-color: #22c55e;
             color: #166534;
         }
 
-        .btn-option.wrong-feedback {
-            background: #ef444420;
+        .btn-option.wrong-btn:hover {
+            background: #fee2e2;
             border-color: #ef4444;
-            color: #b91c1c;
+            color: #991b1b;
         }
 
-        /* 反馈区域 */
-        .feedback-area {
-            margin: 0 2rem 2rem 2rem;
-            padding: 1rem 1.2rem;
-            background: #f1f5f9;
-            border-radius: 24px;
-            border-left: 6px solid #3b82f6;
+        /* 结果解析 */
+        .result-area {
+            margin-top: 20px;
+            background: #f8fafc;
+            border-radius: 20px;
+            padding: 18px;
+            border-left: 5px solid #64748b;
         }
 
-        .correct-msg {
+        .feedback {
+            font-weight: 600;
+            margin-bottom: 12px;
+            font-size: 1rem;
+        }
+
+        .feedback.correct-feedback {
             color: #15803d;
-            font-weight: 600;
         }
 
-        .wrong-msg {
+        .feedback.wrong-feedback {
             color: #b91c1c;
-            font-weight: 600;
         }
 
         .explanation {
-            margin-top: 10px;
             color: #334155;
-            font-size: 0.95rem;
             line-height: 1.5;
         }
 
-        /* 导航按钮 */
+        /* 导航栏 */
         .nav-buttons {
             display: flex;
-            gap: 16px;
-            padding: 0 2rem 2rem 2rem;
             justify-content: space-between;
-            flex-wrap: wrap;
+            margin-top: 28px;
+            gap: 12px;
         }
 
         .nav-btn {
             background: #eef2ff;
             border: none;
-            padding: 10px 24px;
+            padding: 10px 20px;
             border-radius: 40px;
-            font-weight: 600;
-            font-size: 0.9rem;
+            font-weight: 500;
             cursor: pointer;
             transition: 0.2s;
-            color: #1e293b;
         }
 
         .nav-btn.primary {
-            background: #3b82f6;
+            background: #2c3e66;
             color: white;
-            box-shadow: 0 2px 6px rgba(59,130,246,0.3);
-        }
-
-        .nav-btn.primary:hover {
-            background: #2563eb;
-            transform: scale(0.98);
         }
 
         .nav-btn:hover {
             background: #cbd5e1;
         }
 
-        /* 错题面板样式 */
-        .panel-title {
-            font-size: 1.4rem;
-            font-weight: 700;
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            border-bottom: 2px solid #e2e8f0;
-            padding-bottom: 12px;
-            margin-bottom: 1rem;
-        }
-
-        .wrong-count {
-            background: #ef4444;
-            color: white;
-            border-radius: 40px;
-            padding: 2px 10px;
-            font-size: 0.8rem;
-        }
-
-        .clear-wrong-btn {
-            background: none;
-            border: none;
-            color: #ef4444;
-            font-size: 0.75rem;
-            cursor: pointer;
-            font-weight: 500;
-        }
-
-        .wrong-list {
-            list-style: none;
-            margin-top: 10px;
+        /* 错题本区域 */
+        .wrong-list-container {
+            max-height: 65vh;
+            overflow-y: auto;
         }
 
         .wrong-item {
-            background: #fef2f2;
-            margin-bottom: 12px;
-            padding: 12px 12px;
+            background: #fef9f0;
             border-radius: 20px;
-            cursor: pointer;
+            padding: 16px;
+            margin-bottom: 14px;
+            border: 1px solid #ffe4c4;
             transition: 0.1s;
-            border: 1px solid #fecaca;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
         }
 
         .wrong-item:hover {
-            background: #fee2e2;
-            transform: translateX(4px);
+            background: #fff5e6;
         }
 
-        .wrong-id {
+        .wrong-q-title {
             font-weight: 700;
-            color: #b91c1c;
-            margin-right: 10px;
+            color: #b45309;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
         }
 
-        .wrong-preview {
-            font-size: 0.85rem;
-            flex: 1;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+        .wrong-q-text {
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 12px;
+            color: #1e293b;
         }
 
-        .remove-wrong {
-            background: #fff;
-            border: 1px solid #f87171;
+        .wrong-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .small-btn {
+            padding: 6px 16px;
             border-radius: 30px;
-            padding: 4px 10px;
-            font-size: 0.7rem;
+            border: none;
+            font-size: 0.8rem;
+            font-weight: 500;
             cursor: pointer;
-            color: #dc2626;
-            font-weight: bold;
+            background: #e2e8f0;
         }
 
-        .empty-msg {
+        .small-btn.danger {
+            background: #ffedd5;
+            color: #b45309;
+        }
+
+        .small-btn.primary {
+            background: #2c3e66;
+            color: white;
+        }
+
+        .empty-tip {
             text-align: center;
-            color: #94a3b8;
-            padding: 2rem 1rem;
-            font-style: italic;
+            color: #64748b;
+            padding: 40px;
+        }
+
+        .clear-wrong-btn {
+            background: #fff1f0;
+            border: 1px solid #fecaca;
+            margin-top: 8px;
+            width: 100%;
+            padding: 10px;
+            border-radius: 40px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        /* 工具条 */
+        .extra-toolbar {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 16px;
+            gap: 12px;
+        }
+
+        .icon-btn {
+            background: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            cursor: pointer;
         }
 
         footer {
             text-align: center;
-            margin-top: 30px;
-            color: #64748b;
-            font-size: 0.8rem;
+            margin-top: 32px;
+            font-size: 0.75rem;
+            color: #94a3b8;
         }
 
-        @media (max-width: 780px) {
+        @media (max-width: 550px) {
+            .card {
+                padding: 20px 16px;
+            }
             .question-text {
                 font-size: 1.2rem;
             }
-            .quiz-header {
-                padding: 1rem;
+            .btn-option {
+                font-size: 1rem;
             }
-            .options-area, .feedback-area, .nav-buttons {
-                padding-left: 1rem;
-                padding-right: 1rem;
-            }
-        }
-        hr {
-            margin: 16px 0;
-        }
-        .status-tag {
-            display: inline-block;
-            background: #e2e8f0;
-            border-radius: 30px;
-            padding: 4px 12px;
-            font-size: 0.7rem;
-            font-weight: 500;
         }
     </style>
 </head>
 <body>
-<div class="dashboard">
-    <!-- 左侧刷题主区域 -->
-    <div class="quiz-card">
-        <div class="quiz-header">
-            <span class="badge">📘 判断题专项 · 错题自动收录</span>
-            <div class="progress-text" id="progressIndicator">第 <span id="currentIdxDisplay">1</span> / <span id="totalCount">0</span> 题</div>
-            <div class="question-text" id="questionText">
-                加载题目中...
-            </div>
+<div class="app-container">
+    <!-- 模式切换 -->
+    <div class="mode-bar">
+        <button class="mode-btn" data-mode="quiz">📝 刷题模式</button>
+        <button class="mode-btn" data-mode="wrong">📚 错题本</button>
+    </div>
+
+    <!-- 动态视图：刷题视图 -->
+    <div id="quizView" class="card">
+        <div class="extra-toolbar">
+            <button id="removeCurrentFromWrongBtn" class="icon-btn" title="从错题本移除本题">🗑 移除本题错题记录</button>
         </div>
-        <div class="options-area">
-            <button class="btn-option" id="correctBtn">✅ 正确</button>
-            <button class="btn-option" id="wrongBtn">❌ 错误</button>
+        <div class="question-header">
+            <span class="q-num" id="qNumber">题目 #--</span>
+            <span id="wrongFlag" class="wrong-status" style="display: none;">📌 已在错题本</span>
         </div>
-        <div class="feedback-area" id="feedbackArea" style="display: none;">
-            <div id="resultMsg"></div>
-            <div class="explanation" id="explanationText"></div>
+        <div class="question-text" id="questionText">
+            加载中...
+        </div>
+        <div class="action-buttons">
+            <button id="correctBtn" class="btn-option correct-btn">✅ 正确</button>
+            <button id="incorrectBtn" class="btn-option wrong-btn">❌ 错误</button>
+        </div>
+        <div id="resultPanel" class="result-area" style="display: none;">
+            <div id="feedbackMsg" class="feedback"></div>
+            <div id="explanationText" class="explanation"></div>
         </div>
         <div class="nav-buttons">
-            <button class="nav-btn" id="prevBtn">◀ 上一题</button>
-            <button class="nav-btn primary" id="resetCurrentFeedback">🧹 清除反馈</button>
-            <button class="nav-btn" id="nextBtn">下一题 ▶</button>
+            <button id="prevBtn" class="nav-btn">◀ 上一题</button>
+            <span style="font-size: 0.9rem; align-self: center;" id="progressIndicator">第1 / 共?题</span>
+            <button id="nextBtn" class="nav-btn primary">下一题 ▶</button>
         </div>
     </div>
 
-    <!-- 右侧错题库面板 -->
-    <div class="wrong-notes-panel">
-        <div class="panel-title">
-            📌 我的错题库
-            <span class="wrong-count" id="wrongCountBadge">0</span>
-            <button class="clear-wrong-btn" id="clearAllWrongBtn">清空错题</button>
+    <!-- 错题本视图 (初始隐藏) -->
+    <div id="wrongView" class="card" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap;">
+            <h3 style="font-weight: 600;">📖 我的错题本</h3>
+            <button id="clearAllWrongBtn" class="icon-btn" style="background:#fee2e2;">🗑 清空所有错题</button>
         </div>
-        <div id="wrongListContainer">
-            <ul class="wrong-list" id="wrongList"></ul>
-            <div id="emptyWrongMsg" class="empty-msg">✨ 暂无错题，继续练习~</div>
-        </div>
-        <hr />
-        <div style="font-size: 0.7rem; color: #475569; text-align: center; margin-top: 10px;">
-            💡 答错自动加入错题本 | 点击错题直接跳转 | 答对后自动移除
+        <div id="wrongListContainer" class="wrong-list-container">
+            <div class="empty-tip">暂无错题，继续刷题吧 ✨</div>
         </div>
     </div>
+    <footer>✔ 判断原题说法正误 — 错题自动收录，可反复巩固</footer>
 </div>
-<footer>判断题刷题系统 · 基于真实题库 | 支持错题持久化（本地存储）</footer>
 
 <script>
-    // --------------------------------------------------------------
-    // 依据文档内容构建完整题库 (含所有给出题号/题干/答案/解析)
-    // --------------------------------------------------------------
-    const QUESTIONS_DATA = [
-        { id: 902, text: "在关联分析中，支持度是用于评估变量间关联程度的指标。", answer: false, explanation: "支持度评估普遍性，置信度/提升度评估关联程度。" },
-        { id: 903, text: "遵章守法的基本要求涵盖：遵守法律法规、遵循道德规范、不参与非法活动、滥用职权、保护客户权益。", answer: false, explanation: "遵章守法不包含“滥用职权”，而是反对滥用职权。" },
-        { id: 907, text: "数据库管理系统只负责数据的存储，而数据的增删改查操作则完全依靠外部应用程序来实现。", answer: false, explanation: "DBMS提供数据操纵功能（DML）。" },
-        { id: 908, text: "劳动者若拒绝用人单位管理人员的违章指挥、强令冒险作业，会被视作违反劳动合同。", answer: false, explanation: "拒绝违章指挥是劳动者合法权利。" },
-        { id: 910, text: "在请求模式里，当应用程序等待输入数据时，并不会暂停自身的执行流程，它会持续运行，直到接收到输入数据才会停下。", answer: false, explanation: "请求模式下程序会阻塞等待。" },
-        { id: 911, text: "依据文件的保护时长，可将文件分为临时文件和永久文件两类。", answer: false, explanation: "文件分类通常按用途或格式，非保护时长。" },
-        { id: 916, text: "Jieba分词库仅能用于情感分析。", answer: false, explanation: "jieba是通用中文分词工具。" },
-        { id: 917, text: "面对复杂的业务需求以及日益增多的ETL任务列表，调度的基础逻辑无需添加额外策略。", answer: false, explanation: "需要优先级、依赖等调度策略。" },
-        { id: 921, text: "GOMS作为一种人机交互界面表示的理论模型，将所有任务都视为面向操作目标的，但它能够解决的问题本质以及用户间的个体差异存在局限。", answer: false, explanation: "GOMS不擅长处理个体差异和复杂决策。" },
-        { id: 923, text: "业务流程重组（BPR）属于渐进式改进方法，其主要做法是对现有流程进行小范围调整，以此提升企业性能。", answer: false, explanation: "BPR是彻底、根本性的再造。" },
-        { id: 930, text: "中文分词模型的主要功能是将连贯的汉字序列拆分成单个的汉字。", answer: false, explanation: "是拆分为有意义的词语。" },
-        { id: 931, text: "在运用交叉验证时，通常而言，测试集中的数据与训练集中的数据是完全相互独立的。", answer: true, explanation: "交叉验证中测试集与训练集严格独立，保证泛化评估。" },
-        { id: 932, text: "均值滤波能用于去除脉冲噪声。", answer: false, explanation: "中值滤波更适合脉冲噪声（椒盐噪声）。" },
-        { id: 936, text: "对比分析作为一种数据分析方法，其用意是找出不同数据集或数据点之间的相同之处。", answer: false, explanation: "对比分析重在找差异。" },
-        { id: 937, text: "在Word中插入目录时，先把光标移到想要插入目录的位置，再在菜单栏的“工具栏”选项卡中选择合适的样式，Word就会生成包含章节标题和页码的目录。", answer: false, explanation: "目录在“引用”选项卡下。" },
-        { id: 941, text: "仅依据测试误差，就能判断算法是否存在欠拟合。", answer: false, explanation: "需要同时看训练误差和测试误差。" },
-        { id: 943, text: "自动语言识别领域中，最常用的两种语音处理方法是梅尔滤波器组和布尔频率系数。", answer: false, explanation: "是梅尔频率倒谱系数（MFCC）。" },
-        { id: 945, text: "可用性是指产品是否能够引起用户的关注，并且让用户产生使用它的念头。", answer: false, explanation: "可用性关注有效性、效率、满意度等。" },
-        { id: 947, text: "无监督图像去噪方法只利用噪声图像来开展训练。", answer: false, explanation: "通常需要干净图像作为目标。" },
-        { id: 950, text: "ETL数据整合工具是一种硬件，用于把数据从源系统中提取出来，经过转换后加载到目标系统。", answer: false, explanation: "ETL工具是软件。" },
-        { id: 956, text: "业务流程重组（BPR）的目标是借助渐进式改进来完善现有的业务流程。", answer: false, explanation: "BPR是彻底的再造。" },
-        { id: 966, text: "业务数据主要流程的开端是数据分析与建模，它的功能是直接为数据获取工作提供指引。", answer: false, explanation: "开端是需求分析。" },
-        { id: 968, text: "图像数据处理是利用图像去噪、图形美化、图像数据减弱等手段，根据需求对图像数据进行处理的技术。", answer: false, explanation: "图像数据处理涵盖增强、分割、识别等，描述不全面或有误导。" },
-        { id: 969, text: "某旅游公司打算分析游客的消费状况，仅依据旅游消费金额这一维度进行分类，为消费金额高的游客提供豪华游服务，这种做法被认为是对象限分析法的合理运用。", answer: false, explanation: "单维度分类不是象限分析法。" },
-        { id: 974, text: "NoSQL数据库完全不支持ACID事务。", answer: false, explanation: "部分NoSQL支持单行/文档级ACID。" },
-        { id: 976, text: "运用支持向量机算法时，距离超平面越近的点，越容易被正确分类。", answer: false, explanation: "距离越远置信度越高。" },
-        { id: 977, text: "操作系统是对软件的抽象，用户借助操作系统来操控计算机。", answer: false, explanation: "操作系统是对硬件的抽象。" },
-        { id: 978, text: "以用户为中心的设计，只需看重用户的感受和体验，不必在意效率问题。", answer: false, explanation: "用户为中心也需兼顾效率与可用性平衡。" },
-        { id: 983, text: "企业进行业务流程优化时，无需参考国内外成功企业的管理经验，只需根据自身情况就能完成优化。", answer: false, explanation: "标杆管理也是重要参考，仅凭自身可能视野不足。" },
-        { id: 984, text: "过滤式特征选择算法是一类凭借数据自身的数值特征来完成特征选择的算法。", answer: true, explanation: "过滤式基于统计指标独立于后续模型。" },
-        { id: 985, text: "在PowerPoint里，若想查看幻灯片切换的效果，可点击预览按钮；同时，借助“计时”组中的相应按钮，还能对切换的速度进行调整。", answer: true, explanation: "预览和计时调整属于PPT基础功能。" },
-        { id: 986, text: "有必要指导初级工挑选合适的标注工具，并按照指定的规范要求开展标注工作。", answer: true, explanation: "规范标注对数据质量至关重要。" },
-        { id: 987, text: "语音编码是通过降低语音信号中的信息冗余度来实现数据压缩的。", answer: true, explanation: "通过去除冗余实现压缩。" },
-        { id: 988, text: "运用计算机视觉、人脸识别、区块链、web3.0、物联网等新技术打造的新型无人零售店，实现了“拿了就走”等自助支付模式。", answer: false, explanation: "无人零售核心技术通常不包括区块链和web3.0。" },
-        { id: 992, text: "数据标注流程包含数据采集、数据清洗、数据标注、数据提示这几个环节。", answer: false, explanation: "包含数据质检，非“数据提示”。" },
-        { id: 996, text: "在经营活动中，若要条理清晰地表达信息，就需要按照SWOT法来组织语言。", answer: false, explanation: "SWOT用于战略分析，非语言组织方法。" },
-        { id: 999, text: "在数据清洗工作里，处理缺失值是唯一需要攻克的难题。", answer: false, explanation: "还有异常值、重复值、不一致等。" },
-        { id: 1000, text: "利用jieba分词库进行情感分析时，无需对原始文本数据做预处理。", answer: false, explanation: "情感分析前需要分词、去停用词等预处理。" }
+    // ---------- 题库构建 (基于提供的错题文档，全部正确答案为“错误”) ----------
+    const QUESTION_BANK = [
+        { id: "902", text: "在关联分析中，支持度是用于评估变量间关联程度的指标。", correctAnswer: false, explanation: "支持度评估普遍性，置信度/提升度评估关联程度。" },
+        { id: "903", text: "遵章守法的基本要求涵盖：遵守法律法规、遵循道德规范、不参与非法活动、滥用职权、保护客户权益。", correctAnswer: false, explanation: "遵章守法不包含\"滥用职权\"，而是反对滥用职权。" },
+        { id: "907", text: "数据库管理系统只负责数据的存储，而数据的增删改查操作则完全依靠外部应用程序来实现。", correctAnswer: false, explanation: "DBMS提供数据操纵功能（DML）。" },
+        { id: "908", text: "劳动者若拒绝用人单位管理人员的违章指挥、强令冒险作业，会被视作违反劳动合同。", correctAnswer: false, explanation: "拒绝违章指挥是劳动者合法权利。" },
+        { id: "910", text: "在请求模式里，当应用程序等待输入数据时，并不会暂停自身的执行流程，它会持续运行，直到接收到输入数据才会停下。", correctAnswer: false, explanation: "请求模式下程序会阻塞等待。" },
+        { id: "911", text: "依据文件的保护时长，可将文件分为临时文件和永久文件两类。", correctAnswer: false, explanation: "文件分类通常按用途或格式，非保护时长。" },
+        { id: "916", text: "Jieba分词库仅能用于情感分析。", correctAnswer: false, explanation: "jieba是通用中文分词工具。" },
+        { id: "917", text: "面对复杂的业务需求以及日益增多的ETL任务列表，调度的基础逻辑无需添加额外策略。", correctAnswer: false, explanation: "需要优先级、依赖等调度策略。" },
+        { id: "921", text: "GOMS作为一种人机交互界面表示的理论模型，将所有任务都视为面向操作目标的，但它能够解决的问题本质以及用户间的个体差异存在局限。", correctAnswer: false, explanation: "GOMS不擅长处理个体差异和复杂决策。" },
+        { id: "923", text: "业务流程重组（BPR）属于渐进式改进方法，其主要做法是对现有流程进行小范围调整，以此提升企业性能。", correctAnswer: false, explanation: "BPR是彻底、根本性的再造。" },
+        { id: "930", text: "中文分词模型的主要功能是将连贯的汉字序列拆分成单个的汉字。", correctAnswer: false, explanation: "是拆分为有意义的词语。" },
+        { id: "932", text: "均值滤波能用于去除脉冲噪声。", correctAnswer: false, explanation: "中值滤波更适合脉冲噪声（椒盐噪声）。" },
+        { id: "936", text: "对比分析作为一种数据分析方法，其用意是找出不同数据集或数据点之间的相同之处。", correctAnswer: false, explanation: "对比分析重在找差异。" },
+        { id: "937", text: "在Word中插入目录时，先把光标移到想要插入目录的位置，再在菜单栏的\"工具栏\"选项卡中选择合适的样式，Word就会生成包含章节标题和页码的目录。", correctAnswer: false, explanation: "目录在\"引用\"选项卡下。" },
+        { id: "941", text: "仅依据测试误差，就能判断算法是否存在欠拟合。", correctAnswer: false, explanation: "需要同时看训练误差和测试误差。" },
+        { id: "943", text: "自动语言识别领域中，最常用的两种语音处理方法是梅尔滤波器组和布尔频率系数。", correctAnswer: false, explanation: "是梅尔频率倒谱系数（MFCC）。" },
+        { id: "945", text: "可用性是指产品是否能够引起用户的关注，并且让用户产生使用它的念头。", correctAnswer: false, explanation: "可用性关注有效性、效率、满意度等。" },
+        { id: "947", text: "无监督图像去噪方法只利用噪声图像来开展训练。", correctAnswer: false, explanation: "通常需要干净图像作为目标。" },
+        { id: "950", text: "ETL数据整合工具是一种硬件，用于把数据从源系统中提取出来，经过转换后加载到目标系统。", correctAnswer: false, explanation: "ETL工具是软件。" },
+        { id: "956", text: "业务流程重组（BPR）的目标是借助渐进式改进来完善现有的业务流程。", correctAnswer: false, explanation: "BPR是彻底的再造。" },
+        { id: "966", text: "业务数据主要流程的开端是数据分析与建模，它的功能是直接为数据获取工作提供指引。", correctAnswer: false, explanation: "开端是需求分析。" },
+        { id: "968", text: "图像数据处理是利用图像去噪、图形美化、图像数据减弱等手段，根据需求对图像数据进行处理的技术。", correctAnswer: false, explanation: "图像数据处理涵盖增强、分割、识别等，描述不全面或有误导。" },
+        { id: "969", text: "某旅游公司打算分析游客的消费状况，仅依据旅游消费金额这一维度进行分类，为消费金额高的游客提供豪华游服务，这种做法被认为是对象限分析法的合理运用。", correctAnswer: false, explanation: "单维度分类不是象限分析法。" },
+        { id: "974", text: "NoSQL数据库完全不支持ACID事务。", correctAnswer: false, explanation: "部分NoSQL支持单行/文档级ACID。" },
+        { id: "976", text: "运用支持向量机算法时，距离超平面越近的点，越容易被正确分类。", correctAnswer: false, explanation: "距离越远置信度越高。" },
+        { id: "977", text: "操作系统是对软件的抽象，用户借助操作系统来操控计算机。", correctAnswer: false, explanation: "操作系统是对硬件的抽象。" },
+        { id: "978", text: "以用户为中心的设计，只需看重用户的感受和体验，不必在意效率问题。", correctAnswer: false, explanation: "用户为中心的设计同时关注用户体验和效率，二者都重要。" },
+        { id: "983", text: "企业进行业务流程优化时，无需参考国内外成功企业的管理经验，只需根据自身情况就能完成优化。", correctAnswer: false, explanation: "应结合自身情况并借鉴成功经验，闭门造车不可取。" },
+        { id: "988", text: "运用计算机视觉、人脸识别、区块链、web3.0、物联网等新技术打造的新型无人零售店，实现了\"拿了就走\"等自助支付模式。", correctAnswer: false, explanation: "无人零售核心技术通常不包括区块链和web3.0。" },
+        { id: "992", text: "数据标注流程包含数据采集、数据清洗、数据标注、数据提示这几个环节。", correctAnswer: false, explanation: "包含数据质检，非\"数据提示\"。" },
+        { id: "996", text: "在经营活动中，若要条理清晰地表达信息，就需要按照SWOT法来组织语言。", correctAnswer: false, explanation: "SWOT用于战略分析，非语言组织方法。" },
+        { id: "999", text: "在数据清洗工作里，处理缺失值是唯一需要攻克的难题。", correctAnswer: false, explanation: "还有异常值、重复值、不一致等。" },
+        { id: "1000", text: "利用jieba分词库进行情感分析时，无需对原始文本数据做预处理。", correctAnswer: false, explanation: "情感分析前需要分词、去停用词等预处理。" }
     ];
 
-    // 按id升序排列，保证刷题顺序自然
-    QUESTIONS_DATA.sort((a,b) => a.id - b.id);
-    const TOTAL_QS = QUESTIONS_DATA.length;
-
     // ---------- 全局状态 ----------
-    let currentIndex = 0;            // 当前第几题 (0基)
-    let currentSelected = null;      // 记录当前是否已经作答过本题: 'correct' or 'wrong' 用于UI反馈
-    let currentCorrectFlag = null;    // 本次是否正确 (true/false)
+    let currentIndex = 0;               // 当前刷题索引 0-based
+    let wrongSet = new Set();            // 存储错题id (string 比如 "902")
+    let currentMode = "quiz";            // "quiz" or "wrong"
     
-    // 错题集合: 存储错题的id (number)
-    let wrongSet = new Set();          // 存题目id
+    // 辅助DOM元素
+    const quizView = document.getElementById('quizView');
+    const wrongView = document.getElementById('wrongView');
+    const modeBtns = document.querySelectorAll('.mode-btn');
+    const questionText = document.getElementById('questionText');
+    const qNumberSpan = document.getElementById('qNumber');
+    const wrongFlagSpan = document.getElementById('wrongFlag');
+    const resultPanel = document.getElementById('resultPanel');
+    const feedbackMsg = document.getElementById('feedbackMsg');
+    const explanationDiv = document.getElementById('explanationText');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const correctOptionBtn = document.getElementById('correctBtn');
+    const incorrectOptionBtn = document.getElementById('incorrectBtn');
+    const progressIndicator = document.getElementById('progressIndicator');
+    const removeCurrentWrongBtn = document.getElementById('removeCurrentFromWrongBtn');
+    const clearAllWrongBtn = document.getElementById('clearAllWrongBtn');
+    const wrongListContainer = document.getElementById('wrongListContainer');
     
-    // localStorage 键名
-    const STORAGE_WRONG_KEY = "judge_wrong_set";
+    // 辅助方法
+    function getCurrentQuestion() {
+        return QUESTION_BANK[currentIndex];
+    }
     
-    // 初始化加载错题库
-    function loadWrongSetFromStorage() {
-        const stored = localStorage.getItem(STORAGE_WRONG_KEY);
-        if(stored) {
-            try{
-                const arr = JSON.parse(stored);
-                if(Array.isArray(arr)) wrongSet = new Set(arr);
-                else wrongSet = new Set();
-            }catch(e){ wrongSet = new Set(); }
+    // 更新刷题视图的UI (题目内容，错题本标记，结果栏可选择性保留刷新后隐藏)
+    function updateQuizUI(resetResult = true) {
+        if (currentMode !== 'quiz') return;
+        const q = getCurrentQuestion();
+        if (!q) return;
+        questionText.innerText = q.text;
+        qNumberSpan.innerText = `题号 ${q.id}`;
+        // 检查是否在错题本
+        const isInWrong = wrongSet.has(q.id);
+        if (isInWrong) {
+            wrongFlagSpan.style.display = 'inline-block';
+            wrongFlagSpan.innerText = '⚠️ 已在错题本';
         } else {
-            wrongSet = new Set();
+            wrongFlagSpan.style.display = 'none';
         }
-        // 确保错题库中的题目id均存在于题库中 (过滤无效)
-        const validIds = new Set(QUESTIONS_DATA.map(q => q.id));
-        for(let wid of wrongSet) {
-            if(!validIds.has(wid)) wrongSet.delete(wid);
-        }
-        updateWrongPanelUI();
-    }
-    
-    function saveWrongSet() {
-        const arr = Array.from(wrongSet);
-        localStorage.setItem(STORAGE_WRONG_KEY, JSON.stringify(arr));
-        updateWrongPanelUI();
-    }
-    
-    // 添加错题 (如果不在错题库中)
-    function addToWrongSet(questionId) {
-        if(!wrongSet.has(questionId)) {
-            wrongSet.add(questionId);
-            saveWrongSet();
+        // 更新进度
+        progressIndicator.innerText = `第${currentIndex+1} / ${QUESTION_BANK.length}题`;
+        if (resetResult) {
+            resultPanel.style.display = 'none';
         }
     }
     
-    // 从错题库移除 (比如答对时)
-    function removeFromWrongSet(questionId) {
-        if(wrongSet.has(questionId)) {
-            wrongSet.delete(questionId);
-            saveWrongSet();
-        }
-    }
-    
-    // 完全清空错题
-    function clearAllWrong() {
-        wrongSet.clear();
-        saveWrongSet();
-    }
-    
-    // 刷新右侧错题列表UI
-    function updateWrongPanelUI() {
-        const wrongListEl = document.getElementById("wrongList");
-        const emptyMsgEl = document.getElementById("emptyWrongMsg");
-        const countBadge = document.getElementById("wrongCountBadge");
-        const wrongCount = wrongSet.size;
-        countBadge.innerText = wrongCount;
+    // 显示解析结果 (用户作答后)
+    function showResult(selectedIsCorrect /* 布尔值: true代表用户选了“正确”, false代表选了“错误” */) {
+        const q = getCurrentQuestion();
+        const realAnswer = q.correctAnswer;  // false 代表“错误”才是正确选项
+        // 判断用户所选是否正确：如果用户选了“正确”且realAnswer为true, 或用户选了“错误”且realAnswer为false，则正确。
+        let isUserCorrect = false;
+        if (selectedIsCorrect === true && realAnswer === true) isUserCorrect = true;
+        if (selectedIsCorrect === false && realAnswer === false) isUserCorrect = true;
         
-        if(wrongCount === 0) {
-            emptyMsgEl.style.display = "block";
-            wrongListEl.innerHTML = "";
+        // 展示解析面板
+        resultPanel.style.display = 'block';
+        if (isUserCorrect) {
+            feedbackMsg.innerText = '✅ 回答正确！';
+            feedbackMsg.className = 'feedback correct-feedback';
+        } else {
+            feedbackMsg.innerText = '❌ 回答错误！正确答案是：' + (realAnswer ? '正确' : '错误');
+            feedbackMsg.className = 'feedback wrong-feedback';
+        }
+        explanationDiv.innerText = `📖 解析：${q.explanation}`;
+        
+        // 错题逻辑：如果用户答错，将本题加入错题本 (未加入过则加)
+        if (!isUserCorrect) {
+            if (!wrongSet.has(q.id)) {
+                wrongSet.add(q.id);
+                updateQuizUI(false);  // 刷新错题标记
+                // 如果当前错题本视图可见，则刷新错题列表
+                if (currentMode === 'wrong') renderWrongList();
+            }
+        }
+        // 注意：答对时，不自动从错题本移除（保持用户手动管理），但可提供单独的移除按钮，不影响自动逻辑
+    }
+    
+    // 渲染错题本列表
+    function renderWrongList() {
+        if (!wrongListContainer) return;
+        const wrongQuestions = QUESTION_BANK.filter(q => wrongSet.has(q.id));
+        if (wrongQuestions.length === 0) {
+            wrongListContainer.innerHTML = `<div class="empty-tip">📭 暂无错题，继续加油～</div>`;
             return;
         }
-        emptyMsgEl.style.display = "none";
-        wrongListEl.innerHTML = "";
-        // 按照id排序展示
-        const sortedWrongIds = Array.from(wrongSet).sort((a,b)=>a-b);
-        for(let qid of sortedWrongIds) {
-            const question = QUESTIONS_DATA.find(q => q.id === qid);
-            if(!question) continue;
-            const li = document.createElement("li");
-            li.className = "wrong-item";
-            // 题干预览截取
-            let preview = question.text.length > 28 ? question.text.slice(0,28)+"..." : question.text;
-            li.innerHTML = `
-                <div style="display:flex; align-items:center; gap:8px; flex:1; overflow:hidden;">
-                    <span class="wrong-id">#${question.id}</span>
-                    <span class="wrong-preview">${escapeHtml(preview)}</span>
+        let html = '';
+        wrongQuestions.forEach(q => {
+            html += `
+                <div class="wrong-item" data-id="${q.id}">
+                    <div class="wrong-q-title">📌 错题编号：${q.id}</div>
+                    <div class="wrong-q-text">${escapeHtml(q.text)}</div>
+                    <div class="wrong-actions">
+                        <button class="small-btn primary practice-wrong-btn" data-id="${q.id}">📖 练习本题</button>
+                        <button class="small-btn danger remove-wrong-btn" data-id="${q.id}">🗑 移出错题本</button>
+                    </div>
                 </div>
-                <button class="remove-wrong" data-id="${question.id}">✖️</button>
             `;
-            // 点击整个条目跳转至该题
-            li.addEventListener("click", (e) => {
-                if(e.target.classList.contains("remove-wrong")) return;
-                const targetId = question.id;
-                const idx = QUESTIONS_DATA.findIndex(q => q.id === targetId);
-                if(idx !== -1) {
-                    currentIndex = idx;
-                    renderCurrentQuestion();
-                    // 跳转后清除当前反馈区域显示，重置作答状态
-                    clearFeedbackUI();
+        });
+        wrongListContainer.innerHTML = html;
+        
+        // 绑定错题列表内按钮事件
+        document.querySelectorAll('.practice-wrong-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const qid = btn.getAttribute('data-id');
+                const targetIndex = QUESTION_BANK.findIndex(q => q.id === qid);
+                if (targetIndex !== -1) {
+                    // 切换到刷题模式，并定位到该题
+                    setMode('quiz');
+                    currentIndex = targetIndex;
+                    updateQuizUI(true);
+                    // 重置结果区
+                    resultPanel.style.display = 'none';
                 }
             });
-            // 单独移除按钮的事件
-            const removeBtn = li.querySelector(".remove-wrong");
-            removeBtn.addEventListener("click", (e) => {
-                e.stopPropagation();
-                removeFromWrongSet(question.id);
-                updateWrongPanelUI();
-                // 如果当前显示的题目正是被移除的错题，并且该题目前在UI上已经显示答对? 不必自动修改状态，只是错题库更新
-                // 可选重新渲染高亮，无需额外操作
+        });
+        document.querySelectorAll('.remove-wrong-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const qid = btn.getAttribute('data-id');
+                wrongSet.delete(qid);
+                renderWrongList();    // 重新渲染错题本
+                // 如果当前是刷题模式且显示的题目正好是刚才移除的题目，更新标记
+                if (currentMode === 'quiz') {
+                    const cur = getCurrentQuestion();
+                    if (cur && cur.id === qid) {
+                        updateQuizUI(false);
+                    }
+                }
             });
-            wrongListEl.appendChild(li);
-        }
+        });
     }
     
-    // 辅助防XSS
+    // 简单防XSS
     function escapeHtml(str) {
         return str.replace(/[&<>]/g, function(m) {
-            if(m === '&') return '&amp;';
-            if(m === '<') return '&lt;';
-            if(m === '>') return '&gt;';
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
             return m;
         }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
             return c;
         });
     }
     
-    // 渲染当前题目 (重置选择状态与反馈)
-    function renderCurrentQuestion() {
-        const q = QUESTIONS_DATA[currentIndex];
-        document.getElementById("questionText").innerHTML = escapeHtml(q.text);
-        document.getElementById("currentIdxDisplay").innerText = currentIndex+1;
-        document.getElementById("totalCount").innerText = TOTAL_QS;
-        // 重置选项样式 (清除高亮)
-        const correctBtn = document.getElementById("correctBtn");
-        const wrongBtn = document.getElementById("wrongBtn");
-        correctBtn.classList.remove("correct-feedback", "wrong-feedback");
-        wrongBtn.classList.remove("correct-feedback", "wrong-feedback");
-        // 清空反馈区域
-        clearFeedbackUI();
-        // 重置当前题目作答标记
-        currentSelected = null;
-        currentCorrectFlag = null;
-        // 可选： 不保存中间结果，每次重新选择
+    // 清空所有错题
+    function clearAllWrong() {
+        if (confirm('⚠️ 确定清空所有错题记录吗？')) {
+            wrongSet.clear();
+            if (currentMode === 'quiz') updateQuizUI(false);
+            if (currentMode === 'wrong') renderWrongList();
+        }
     }
     
-    function clearFeedbackUI() {
-        const feedbackDiv = document.getElementById("feedbackArea");
-        feedbackDiv.style.display = "none";
-        document.getElementById("resultMsg").innerHTML = "";
-        document.getElementById("explanationText").innerHTML = "";
-    }
-    
-    function showFeedback(isCorrect, explanation) {
-        const feedbackDiv = document.getElementById("feedbackArea");
-        const resultMsgDiv = document.getElementById("resultMsg");
-        const explanationDiv = document.getElementById("explanationText");
-        feedbackDiv.style.display = "block";
-        if(isCorrect) {
-            resultMsgDiv.innerHTML = '<span class="correct-msg">✓ 回答正确！很棒！</span>';
+    // 从错题本移除当前刷题中的题目
+    function removeCurrentFromWrong() {
+        const q = getCurrentQuestion();
+        if (q && wrongSet.has(q.id)) {
+            wrongSet.delete(q.id);
+            updateQuizUI(false);
+            if (currentMode === 'wrong') renderWrongList();
+            // 显示短暂提示（非必要）
+            const toast = document.createElement('div');
+            toast.innerText = `✅ 已从错题本移除「${q.id}」`;
+            toast.style.position = 'fixed'; toast.style.bottom = '20px'; toast.style.left = '20px';
+            toast.style.background = '#334155'; toast.style.color = 'white'; toast.style.padding = '8px 16px';
+            toast.style.borderRadius = '40px'; toast.style.fontSize = '0.8rem'; toast.style.zIndex = '999';
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 1500);
         } else {
-            resultMsgDiv.innerHTML = '<span class="wrong-msg">✗ 回答错误！正确答案是：' + (QUESTIONS_DATA[currentIndex].answer ? "正确" : "错误") + '</span>';
+            alert('当前题目不在错题本中');
         }
-        explanationDiv.innerHTML = `<strong>📖 解析：</strong> ${escapeHtml(explanation || "暂无详细解析，但请参考基础知识。")}`;
     }
     
-    // 处理用户作答: choice 为 true(用户选正确) / false(选错误)
-    function handleAnswer(selectedIsTrue) {
-        const currentQ = QUESTIONS_DATA[currentIndex];
-        const correctAnswer = currentQ.answer;   // true:正确, false:错误
-        const isUserCorrect = (selectedIsTrue === correctAnswer);
-        
-        // 更新UI高亮样式，显示正确/错误对应按钮底色
-        const correctBtn = document.getElementById("correctBtn");
-        const wrongBtn = document.getElementById("wrongBtn");
-        correctBtn.classList.remove("correct-feedback", "wrong-feedback");
-        wrongBtn.classList.remove("correct-feedback", "wrong-feedback");
-        if(selectedIsTrue) {
-            correctBtn.classList.add(isUserCorrect ? "correct-feedback" : "wrong-feedback");
+    // 模式切换
+    function setMode(mode) {
+        currentMode = mode;
+        if (mode === 'quiz') {
+            quizView.style.display = 'block';
+            wrongView.style.display = 'none';
+            updateQuizUI(true);
+            // 高亮按钮样式
+            modeBtns.forEach(btn => {
+                if (btn.getAttribute('data-mode') === 'quiz') btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
         } else {
-            wrongBtn.classList.add(isUserCorrect ? "correct-feedback" : "wrong-feedback");
+            quizView.style.display = 'none';
+            wrongView.style.display = 'block';
+            renderWrongList();
+            modeBtns.forEach(btn => {
+                if (btn.getAttribute('data-mode') === 'wrong') btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
         }
-        
-        // 展示反馈
-        showFeedback(isUserCorrect, currentQ.explanation);
-        
-        // 错题库逻辑:
-        // 如果用户答错了，将该题加入错题库
-        if(!isUserCorrect) {
-            addToWrongSet(currentQ.id);
-        } 
-        // 如果用户答对了，并且该题原本在错题库中，则移除
-        else {
-            if(wrongSet.has(currentQ.id)) {
-                removeFromWrongSet(currentQ.id);
-            }
-        }
-        // 记录作答状态
-        currentSelected = selectedIsTrue ? "correct" : "wrong";
-        currentCorrectFlag = isUserCorrect;
     }
     
-    // 上一题/下一题
-    function prevQuestion() {
-        if(currentIndex > 0) {
+    // 切换题目
+    function goPrev() {
+        if (currentIndex > 0) {
             currentIndex--;
-            renderCurrentQuestion();
+            updateQuizUI(true);
         } else {
-            // 提示到头
-            alert("已经是第一题了！");
-        }
-    }
-    
-    function nextQuestion() {
-        if(currentIndex < TOTAL_QS-1) {
-            currentIndex++;
-            renderCurrentQuestion();
-        } else {
-            alert("恭喜！已完成所有题目，可回顾错题继续巩固。");
-        }
-    }
-    
-    // 重置当前题目的反馈 (清空高亮和反馈面板，但保留错题记录状态不变)
-    function resetCurrentFeedback() {
-        const correctBtn = document.getElementById("correctBtn");
-        const wrongBtn = document.getElementById("wrongBtn");
-        correctBtn.classList.remove("correct-feedback", "wrong-feedback");
-        wrongBtn.classList.remove("correct-feedback", "wrong-feedback");
-        clearFeedbackUI();
-        currentSelected = null;
-        currentCorrectFlag = null;
-    }
-    
-    // 事件绑定及初始化
-    function init() {
-        loadWrongSetFromStorage();
-        renderCurrentQuestion();
-        
-        document.getElementById("correctBtn").addEventListener("click", () => {
-            handleAnswer(true);
-        });
-        document.getElementById("wrongBtn").addEventListener("click", () => {
-            handleAnswer(false);
-        });
-        document.getElementById("prevBtn").addEventListener("click", prevQuestion);
-        document.getElementById("nextBtn").addEventListener("click", nextQuestion);
-        document.getElementById("resetCurrentFeedback").addEventListener("click", resetCurrentFeedback);
-        document.getElementById("clearAllWrongBtn").addEventListener("click", () => {
-            if(confirm("⚠️ 确定清空所有错题记录吗？该操作不可撤销。")) {
-                clearAllWrong();
-                updateWrongPanelUI();
-                // 若当前显示题目曾经错但清空后不影响，但面板刷新
+            // 第一题时循环至最后（可选） 轻提示
+            const isConfirm = confirm('已在第一题，是否跳转到最后一题？');
+            if (isConfirm) {
+                currentIndex = QUESTION_BANK.length - 1;
+                updateQuizUI(true);
             }
+        }
+    }
+    
+    function goNext() {
+        if (currentIndex < QUESTION_BANK.length - 1) {
+            currentIndex++;
+            updateQuizUI(true);
+        } else {
+            const isConfirm = confirm('已完成最后一题，是否回到第一题？');
+            if (isConfirm) {
+                currentIndex = 0;
+                updateQuizUI(true);
+            }
+        }
+    }
+    
+    // 监听作答
+    function onSelectAnswer(selectedBoolean) {
+        // 显示结果并处理错题加入
+        showResult(selectedBoolean);
+    }
+    
+    // 初始化事件绑定
+    function bindEvents() {
+        correctOptionBtn.addEventListener('click', () => onSelectAnswer(true));
+        incorrectOptionBtn.addEventListener('click', () => onSelectAnswer(false));
+        prevBtn.addEventListener('click', goPrev);
+        nextBtn.addEventListener('click', goNext);
+        removeCurrentWrongBtn.addEventListener('click', removeCurrentFromWrong);
+        clearAllWrongBtn.addEventListener('click', clearAllWrong);
+        modeBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const mode = btn.getAttribute('data-mode');
+                if (mode === 'quiz') setMode('quiz');
+                else if (mode === 'wrong') setMode('wrong');
+            });
         });
-        // 如果题量为0不报错
-        if(TOTAL_QS === 0) document.getElementById("questionText").innerText = "暂无题目数据";
+    }
+    
+    // 初始化加载
+    function init() {
+        bindEvents();
+        // 默认刷题模式
+        setMode('quiz');
+        currentIndex = 0;
+        updateQuizUI(true);
+        // 预置几条示例错题? 不需要预置, 初始为空
     }
     
     init();
