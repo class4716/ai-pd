@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>智能错题本 · 进度记忆刷题工具</title>
+    <title>判断题刷题系统</title>
     <style>
         * {
             margin: 0;
@@ -19,8 +19,114 @@
         }
 
         .app-container {
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
+        }
+
+        /* 登录遮罩 */
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .login-card {
+            background: white;
+            border-radius: 48px;
+            padding: 36px 32px;
+            width: 90%;
+            max-width: 420px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+
+        .login-card h2 {
+            margin-bottom: 24px;
+            color: #1e293b;
+        }
+
+        .login-input {
+            width: 100%;
+            padding: 14px 18px;
+            margin: 12px 0;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 60px;
+            font-size: 1rem;
+            transition: 0.2s;
+        }
+
+        .login-input:focus {
+            outline: none;
+            border-color: #2c3e66;
+        }
+
+        .login-btn {
+            background: #2c3e66;
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 12px;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 1rem;
+            margin-top: 16px;
+            cursor: pointer;
+        }
+
+        .error-msg {
+            color: #e11d48;
+            font-size: 0.85rem;
+            margin-top: 12px;
+        }
+
+        .role-demo {
+            margin-top: 20px;
+            font-size: 0.75rem;
+            color: #64748b;
+            background: #f8fafc;
+            padding: 12px;
+            border-radius: 20px;
+            text-align: left;
+        }
+
+        .role-demo p {
+            margin: 6px 0;
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            border-radius: 60px;
+            padding: 8px 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+
+        .user-badge {
+            background: #eef2ff;
+            padding: 6px 16px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .logout-btn {
+            background: none;
+            border: none;
+            color: #ef4444;
+            font-weight: 500;
+            cursor: pointer;
+            margin-left: 12px;
         }
 
         .mode-bar {
@@ -49,11 +155,6 @@
         .mode-btn.active {
             background: #2c3e66;
             color: white;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-
-        .mode-btn:not(.active):hover {
-            background: #e2e8f0;
         }
 
         .card {
@@ -61,7 +162,6 @@
             border-radius: 28px;
             box-shadow: 0 12px 24px -12px rgba(0,0,0,0.15);
             padding: 28px 24px;
-            transition: all 0.2s;
         }
 
         .question-header {
@@ -80,7 +180,6 @@
             background: #eef2ff;
             padding: 4px 14px;
             border-radius: 40px;
-            color: #1e293b;
         }
 
         .wrong-status {
@@ -89,15 +188,13 @@
             color: #b91c1c;
             padding: 4px 12px;
             border-radius: 30px;
-            font-weight: 500;
         }
 
         .question-text {
             font-size: 1.45rem;
             font-weight: 500;
             line-height: 1.4;
-            margin: 20px 0 28px 0;
-            color: #0f172a;
+            margin: 20px 0 28px;
         }
 
         .action-buttons {
@@ -112,26 +209,14 @@
             padding: 14px 0;
             font-size: 1.1rem;
             font-weight: 600;
-            border: none;
             border-radius: 60px;
             cursor: pointer;
-            transition: 0.2s;
             background: #f8fafc;
             border: 1.5px solid #cbd5e1;
-            color: #1e293b;
+            transition: all 0.2s;
         }
-
-        .btn-option.correct-btn:hover {
-            background: #dcfce7;
-            border-color: #22c55e;
-            color: #166534;
-        }
-
-        .btn-option.wrong-btn:hover {
-            background: #fee2e2;
-            border-color: #ef4444;
-            color: #991b1b;
-        }
+        .btn-option.correct-btn:hover { background: #dcfce7; border-color: #22c55e; }
+        .btn-option.wrong-btn:hover { background: #fee2e2; border-color: #ef4444; }
 
         .result-area {
             margin-top: 20px;
@@ -139,25 +224,6 @@
             border-radius: 20px;
             padding: 18px;
             border-left: 5px solid #64748b;
-        }
-
-        .feedback {
-            font-weight: 600;
-            margin-bottom: 12px;
-            font-size: 1rem;
-        }
-
-        .feedback.correct-feedback {
-            color: #15803d;
-        }
-
-        .feedback.wrong-feedback {
-            color: #b91c1c;
-        }
-
-        .explanation {
-            color: #334155;
-            line-height: 1.5;
         }
 
         .nav-buttons {
@@ -172,58 +238,27 @@
             border: none;
             padding: 10px 20px;
             border-radius: 40px;
-            font-weight: 500;
             cursor: pointer;
-            transition: 0.2s;
         }
-
-        .nav-btn.primary {
-            background: #2c3e66;
-            color: white;
-        }
-
-        .nav-btn:hover {
-            background: #cbd5e1;
-        }
+        .nav-btn.primary { background: #2c3e66; color: white; }
 
         .wrong-list-container {
             max-height: 65vh;
             overflow-y: auto;
         }
-
         .wrong-item {
             background: #fef9f0;
             border-radius: 20px;
             padding: 16px;
             margin-bottom: 14px;
             border: 1px solid #ffe4c4;
-            transition: 0.1s;
         }
-
-        .wrong-item:hover {
-            background: #fff5e6;
-        }
-
-        .wrong-q-title {
-            font-weight: 700;
-            color: #b45309;
-            font-size: 0.9rem;
-            margin-bottom: 8px;
-        }
-
-        .wrong-q-text {
-            font-size: 1rem;
-            font-weight: 500;
-            margin-bottom: 12px;
-            color: #1e293b;
-        }
-
         .wrong-actions {
             display: flex;
             gap: 12px;
             justify-content: flex-end;
+            margin-top: 12px;
         }
-
         .small-btn {
             padding: 6px 16px;
             border-radius: 30px;
@@ -233,151 +268,100 @@
             cursor: pointer;
             background: #e2e8f0;
         }
+        .small-btn.primary { background: #2c3e66; color: white; }
+        .small-btn.danger { background: #ffedd5; color: #b45309; }
 
-        .small-btn.danger {
-            background: #ffedd5;
-            color: #b45309;
+        .admin-panel {
+            margin-top: 28px;
+            border-top: 2px dashed #cbd5e1;
+            padding-top: 24px;
         }
-
-        .small-btn.primary {
+        .admin-section-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .question-editor {
+            background: #f1f5f9;
+            border-radius: 24px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .editor-field {
+            margin-bottom: 14px;
+        }
+        .editor-field label {
+            font-weight: 600;
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.85rem;
+        }
+        .editor-field input, .editor-field textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 20px;
+            border: 1px solid #cbd5e1;
+            font-size: 0.9rem;
+        }
+        .correct-select {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        .save-edit-btn {
             background: #2c3e66;
             color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 40px;
+            cursor: pointer;
         }
-
-        .empty-tip {
-            text-align: center;
-            color: #64748b;
-            padding: 40px;
+        .danger-btn {
+            background: #fee2e2;
+            color: #b91c1c;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 40px;
+            cursor: pointer;
         }
-
-        .extra-toolbar {
+        .flex-between {
             display: flex;
-            justify-content: flex-end;
-            margin-bottom: 16px;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
             gap: 12px;
         }
-
         .icon-btn {
             background: white;
             border: none;
-            padding: 8px 18px;
+            padding: 6px 14px;
             border-radius: 40px;
-            font-size: 0.85rem;
-            font-weight: 500;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            font-size: 0.8rem;
             cursor: pointer;
-            transition: 0.1s;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
-
-        .icon-btn:hover {
-            background: #eef2ff;
-        }
-
-        .storage-badge {
+        .empty-tip { text-align: center; color: #64748b; padding: 40px; }
+        @media (max-width: 550px) { .question-text { font-size: 1.2rem; } }
+        .role-tag {
+            display: inline-block;
             background: #e6f7ec;
             color: #2b6e3c;
             font-size: 0.7rem;
-            padding: 4px 12px;
+            padding: 2px 10px;
             border-radius: 30px;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .progress-save-tip {
-            font-size: 0.7rem;
-            color: #3b82b6;
             margin-left: 8px;
-            background: #eef2ff;
-            padding: 2px 8px;
-            border-radius: 30px;
-        }
-
-        footer {
-            text-align: center;
-            margin-top: 32px;
-            font-size: 0.75rem;
-            color: #94a3b8;
-            display: flex;
-            justify-content: center;
-            gap: 16px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        @media (max-width: 550px) {
-            .card {
-                padding: 20px 16px;
-            }
-            .question-text {
-                font-size: 1.2rem;
-            }
-            .btn-option {
-                font-size: 1rem;
-            }
         }
     </style>
 </head>
 <body>
-<div class="app-container">
-    <div class="mode-bar">
-        <button class="mode-btn" data-mode="quiz">📝 刷题模式</button>
-        <button class="mode-btn" data-mode="wrong">📚 错题本</button>
-    </div>
-
-    <!-- 刷题视图 -->
-    <div id="quizView" class="card">
-        <div class="extra-toolbar">
-            <button id="removeCurrentFromWrongBtn" class="icon-btn" title="从错题本移除本题">🗑 移出错题本</button>
-            <button id="resetProgressBtn" class="icon-btn" style="background:#fff0f0;" title="重置进度&错题">🔄 重置进度/错题</button>
-        </div>
-        <div class="question-header">
-            <span class="q-num" id="qNumber">题目 #--</span>
-            <span id="wrongFlag" class="wrong-status" style="display: none;">📌 已在错题本</span>
-        </div>
-        <div class="question-text" id="questionText">
-            加载中...
-        </div>
-        <div class="action-buttons">
-            <button id="correctBtn" class="btn-option correct-btn">✅ 正确</button>
-            <button id="incorrectBtn" class="btn-option wrong-btn">❌ 错误</button>
-        </div>
-        <div id="resultPanel" class="result-area" style="display: none;">
-            <div id="feedbackMsg" class="feedback"></div>
-            <div id="explanationText" class="explanation"></div>
-        </div>
-        <div class="nav-buttons">
-            <button id="prevBtn" class="nav-btn">◀ 上一题</button>
-            <span style="font-size: 0.9rem; align-self: center;" id="progressIndicator">
-                第1 / 共?题
-                <span class="progress-save-tip" id="saveTip">💾 进度已记忆</span>
-            </span>
-            <button id="nextBtn" class="nav-btn primary">下一题 ▶</button>
-        </div>
-    </div>
-
-    <!-- 错题本视图 -->
-    <div id="wrongView" class="card" style="display: none;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <h3 style="font-weight: 600;">📖 我的错题本</h3>
-                <span class="storage-badge" id="storageStatus">💾 已自动记忆</span>
-            </div>
-            <button id="clearAllWrongBtn" class="icon-btn" style="background:#fee2e2;">🗑 清空所有错题</button>
-        </div>
-        <div id="wrongListContainer" class="wrong-list-container">
-            <div class="empty-tip">暂无错题，继续刷题吧 ✨</div>
-        </div>
-    </div>
-    <footer>
-        <span>✔ 判断原题说法正误 — 自动记忆「刷题进度 + 错题本」</span>
-        <button id="exportWrongBtn" class="icon-btn" style="font-size:0.7rem;">📎 导出错题列表</button>
-    </footer>
-</div>
+<div id="app"></div>
 
 <script>
-    // ---------- 题库 (所有正确判断都是“错误”) ----------
-    const QUESTION_BANK = [
+    // ---------- 完整题库 (33道题，基于原文档) ----------
+    const FULL_QUESTION_BANK = [
         { id: "902", text: "在关联分析中，支持度是用于评估变量间关联程度的指标。", correctAnswer: false, explanation: "支持度评估普遍性，置信度/提升度评估关联程度。" },
         { id: "903", text: "遵章守法的基本要求涵盖：遵守法律法规、遵循道德规范、不参与非法活动、滥用职权、保护客户权益。", correctAnswer: false, explanation: "遵章守法不包含\"滥用职权\"，而是反对滥用职权。" },
         { id: "907", text: "数据库管理系统只负责数据的存储，而数据的增删改查操作则完全依靠外部应用程序来实现。", correctAnswer: false, explanation: "DBMS提供数据操纵功能（DML）。" },
@@ -413,366 +397,431 @@
         { id: "1000", text: "利用jieba分词库进行情感分析时，无需对原始文本数据做预处理。", correctAnswer: false, explanation: "情感分析前需要分词、去停用词等预处理。" }
     ];
 
-    // ---------- 存储KEY ----------
-    const STORAGE_WRONG_SET = "wrong_question_ids_v3";
-    const STORAGE_PROGRESS = "quiz_progress_index_v3";
+    // 存储Keys (区分角色存储，但普通用户和管理员共用同一套题库? 一般管理员修改题库影响所有人，更符合实际)
+    const STORAGE_QUESTIONS = "dual_role_question_bank";
+    const STORAGE_WRONG_SET = "wrong_set_common";   // 错题本独立存储（每个账号错题分开, 用role+username标记）
+    const STORAGE_PROGRESS = "progress_common";
     
-    // ---------- 全局状态 ----------
-    let currentIndex = 0;           // 0-indexed
-    let wrongSet = new Set();        
-    let currentMode = "quiz";       
+    let questionBank = [];
+    let wrongSet = new Set();
+    let currentIndex = 0;
+    let currentMode = "quiz";
+    let currentUser = null;      // { username, role }
+    let editingQuestionId = null;
 
-    // DOM 元素
-    const quizView = document.getElementById('quizView');
-    const wrongView = document.getElementById('wrongView');
-    const modeBtns = document.querySelectorAll('.mode-btn');
-    const questionText = document.getElementById('questionText');
-    const qNumberSpan = document.getElementById('qNumber');
-    const wrongFlagSpan = document.getElementById('wrongFlag');
-    const resultPanel = document.getElementById('resultPanel');
-    const feedbackMsg = document.getElementById('feedbackMsg');
-    const explanationDiv = document.getElementById('explanationText');
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    const correctOptionBtn = document.getElementById('correctBtn');
-    const incorrectOptionBtn = document.getElementById('incorrectBtn');
-    const progressIndicator = document.getElementById('progressIndicator');
-    const removeCurrentWrongBtn = document.getElementById('removeCurrentFromWrongBtn');
-    const clearAllWrongBtn = document.getElementById('clearAllWrongBtn');
-    const resetProgressBtn = document.getElementById('resetProgressBtn');
-    const wrongListContainer = document.getElementById('wrongListContainer');
-    const exportWrongBtn = document.getElementById('exportWrongBtn');
-    const storageStatusSpan = document.getElementById('storageStatus');
-    const saveTipSpan = document.getElementById('saveTip');
-    
-    // ---------- 存储持久化 (错题集 + 刷题进度) ----------
-    function saveAllData() {
-        try {
-            // 保存错题id数组
-            const wrongArr = Array.from(wrongSet);
-            localStorage.setItem(STORAGE_WRONG_SET, JSON.stringify(wrongArr));
-            // 保存当前刷题索引
-            localStorage.setItem(STORAGE_PROGRESS, currentIndex.toString());
-            if (storageStatusSpan) {
-                storageStatusSpan.innerHTML = '💾 已自动记忆';
-                storageStatusSpan.style.opacity = '1';
-                setTimeout(() => { if(storageStatusSpan) storageStatusSpan.style.opacity = '0.7'; }, 1000);
-            }
-            if (saveTipSpan) {
-                saveTipSpan.style.opacity = '1';
-                setTimeout(() => { if(saveTipSpan) saveTipSpan.style.opacity = '0.6'; }, 800);
-            }
-        } catch(e) { console.warn(e); }
+    const appRoot = document.getElementById('app');
+
+    // 获取当前用户的存储key后缀
+    function getUserStorageSuffix() {
+        if (!currentUser) return "guest";
+        return `${currentUser.username}_${currentUser.role}`;
     }
     
-    function loadAllData() {
-        try {
-            // 加载错题集
-            const rawWrong = localStorage.getItem(STORAGE_WRONG_SET);
-            if (rawWrong) {
-                const arr = JSON.parse(rawWrong);
-                if (Array.isArray(arr)) wrongSet = new Set(arr);
-                else wrongSet = new Set();
-            } else {
-                wrongSet = new Set();
-            }
-            // 过滤无效ID
-            const validIds = new Set(QUESTION_BANK.map(q => q.id));
-            for (let wid of wrongSet) {
-                if (!validIds.has(wid)) wrongSet.delete(wid);
-            }
-            
-            // 加载刷题进度
-            const savedIndex = localStorage.getItem(STORAGE_PROGRESS);
-            if (savedIndex !== null) {
-                let idx = parseInt(savedIndex, 10);
-                if (!isNaN(idx) && idx >= 0 && idx < QUESTION_BANK.length) {
-                    currentIndex = idx;
-                } else {
-                    currentIndex = 0;
+    function saveWrongSet() {
+        if (!currentUser) return;
+        const key = `${STORAGE_WRONG_SET}_${getUserStorageSuffix()}`;
+        localStorage.setItem(key, JSON.stringify(Array.from(wrongSet)));
+    }
+    
+    function loadWrongSet() {
+        if (!currentUser) return;
+        const key = `${STORAGE_WRONG_SET}_${getUserStorageSuffix()}`;
+        const raw = localStorage.getItem(key);
+        if (raw) {
+            try {
+                const arr = JSON.parse(raw);
+                wrongSet = new Set(arr);
+            } catch(e) { wrongSet = new Set(); }
+        } else { wrongSet = new Set(); }
+        // 过滤无效id
+        const validIds = new Set(questionBank.map(q => q.id));
+        for (let w of wrongSet) if (!validIds.has(w)) wrongSet.delete(w);
+        saveWrongSet();
+    }
+    
+    function saveProgress() {
+        if (!currentUser) return;
+        const key = `${STORAGE_PROGRESS}_${getUserStorageSuffix()}`;
+        localStorage.setItem(key, currentIndex.toString());
+    }
+    
+    function loadProgress() {
+        if (!currentUser) return;
+        const key = `${STORAGE_PROGRESS}_${getUserStorageSuffix()}`;
+        const idx = localStorage.getItem(key);
+        if (idx !== null) {
+            let i = parseInt(idx, 10);
+            if (!isNaN(i) && i >= 0 && i < questionBank.length) currentIndex = i;
+            else currentIndex = 0;
+        } else { currentIndex = 0; }
+        if (currentIndex >= questionBank.length) currentIndex = 0;
+        saveProgress();
+    }
+
+    function saveQuestionsToLocal() {
+        localStorage.setItem(STORAGE_QUESTIONS, JSON.stringify(questionBank));
+    }
+
+    function loadQuestionsFromLocal() {
+        const stored = localStorage.getItem(STORAGE_QUESTIONS);
+        if (stored) {
+            try {
+                const parsed = JSON.parse(stored);
+                if (Array.isArray(parsed) && parsed.length === FULL_QUESTION_BANK.length) {
+                    questionBank = parsed;
+                    return;
                 }
-            } else {
-                currentIndex = 0;
-            }
-            // 边界保护
-            if (currentIndex >= QUESTION_BANK.length) currentIndex = 0;
-            if (currentIndex < 0) currentIndex = 0;
-            saveAllData(); // 同步清理无效
-        } catch(e) {
-            wrongSet = new Set();
-            currentIndex = 0;
+            } catch(e) {}
+        }
+        questionBank = JSON.parse(JSON.stringify(FULL_QUESTION_BANK));
+        saveQuestionsToLocal();
+    }
+
+    // 错题操作
+    function addToWrongSet(qid) {
+        if (!wrongSet.has(qid)) {
+            wrongSet.add(qid);
+            saveWrongSet();
+            refreshWrongFlagUI(qid, true);
         }
     }
-    
-    // 重置全部进度和错题 (重置记忆)
-    function resetAllProgressAndWrong() {
-        if (confirm('⚠️ 重置将清空所有刷题进度和错题记录，且不可撤销。确定吗？')) {
+    function removeFromWrongSet(qid) {
+        if (wrongSet.has(qid)) {
+            wrongSet.delete(qid);
+            saveWrongSet();
+            refreshWrongFlagUI(qid, false);
+        }
+    }
+    function refreshWrongFlagUI(qid, isNowWrong) {
+        if (currentMode === 'quiz') {
+            const cur = getCurrentQuestion();
+            if (cur && cur.id === qid) {
+                const flagSpan = document.querySelector('.wrong-status');
+                if (flagSpan) {
+                    if (isNowWrong) {
+                        flagSpan.style.display = 'inline-block';
+                        flagSpan.innerText = '⚠️ 已在错题本';
+                    } else {
+                        flagSpan.style.display = 'none';
+                    }
+                } else { renderMainContent(); }
+            } else if (currentMode === 'wrong') { renderMainContent(); }
+        } else if (currentMode === 'wrong') { renderMainContent(); }
+    }
+    function clearAllWrong() {
+        if (confirm('清空所有错题记录？')) {
             wrongSet.clear();
-            currentIndex = 0;
-            saveAllData();
-            // 刷新UI
-            if (currentMode === 'quiz') {
-                updateQuizUI(true);
-                resultPanel.style.display = 'none';
-            }
-            if (currentMode === 'wrong') renderWrongList();
-            alert('✅ 已重置进度和错题本，重新开始练习吧');
+            saveWrongSet();
+            renderMainContent();
         }
     }
-    
-    // 单独清空错题，保留进度
-    function clearAllWrongQuestions() {
-        if (confirm('⚠️ 确定清空所有错题记录吗？（刷题进度不受影响）')) {
+
+    // 管理员专用: 重置题库等
+    function resetAllData() {
+        if (!currentUser || currentUser.role !== 'admin') return;
+        if (confirm('重置全部数据：恢复33道原始题目，清除所有用户的错题和进度？不可撤销！')) {
+            questionBank = JSON.parse(JSON.stringify(FULL_QUESTION_BANK));
+            saveQuestionsToLocal();
+            // 注意: 不清除其他用户错题，但重置题库后所有用户错题ID可能失效，这里仅清除当前用户的错题本更安全
             wrongSet.clear();
-            saveAllData();
-            if (currentMode === 'wrong') renderWrongList();
-            if (currentMode === 'quiz') updateQuizUI(false);
+            saveWrongSet();
+            currentIndex = 0;
+            saveProgress();
+            editingQuestionId = null;
+            renderMainContent();
+            alert('已恢复完整33道题库，当前用户的错题和进度已重置');
         }
     }
     
-    // 添加/删除错题并自动存储
-    function addToWrongSet(questionId) {
-        if (!wrongSet.has(questionId)) {
-            wrongSet.add(questionId);
-            saveAllData();
-            return true;
-        }
-        return false;
-    }
-    
-    function removeFromWrongSet(questionId) {
-        if (wrongSet.has(questionId)) {
-            wrongSet.delete(questionId);
-            saveAllData();
-            return true;
-        }
-        return false;
-    }
-    
-    // 导出错题列表
-    function exportWrongList() {
-        const wrongQuestions = QUESTION_BANK.filter(q => wrongSet.has(q.id));
-        if (wrongQuestions.length === 0) {
-            alert('暂无错题，无法导出');
-            return;
-        }
-        let content = `===== 错题本导出 (${new Date().toLocaleString()}) =====\n\n`;
-        wrongQuestions.forEach((q, idx) => {
-            content += `【${idx+1}】题号: ${q.id}\n题目: ${q.text}\n正确答案: 错误\n解析: ${q.explanation}\n\n`;
+    function addNewQuestion() {
+        if (!currentUser || currentUser.role !== 'admin') return;
+        let newId = prompt("请输入新题号 (唯一，例如 2001):");
+        if (!newId) return;
+        if (questionBank.some(q => q.id === newId)) { alert("题号已存在"); return; }
+        let newText = prompt("请输入题目内容:");
+        if (!newText) return;
+        let isCorrectRaw = confirm("本题正确答案是“正确”吗？\n确定=正确，取消=错误");
+        let newExplanation = prompt("请输入解析:") || "暂无解析";
+        questionBank.push({
+            id: newId,
+            text: newText,
+            correctAnswer: isCorrectRaw,
+            explanation: newExplanation
         });
-        const blob = new Blob([content], {type: 'text/plain;charset=utf-8'});
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        link.href = url;
-        link.download = `wrong_questions_${Date.now()}.txt`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+        saveQuestionsToLocal();
+        renderMainContent();
     }
     
-    // 获取当前题目
+    function deleteQuestion(qid) {
+        if (!currentUser || currentUser.role !== 'admin') return;
+        if (questionBank.length <= 1) { alert("至少保留一道题目"); return; }
+        if (confirm(`永久删除题号 ${qid} 吗？`)) {
+            const idx = questionBank.findIndex(q => q.id === qid);
+            if (idx !== -1) {
+                questionBank.splice(idx, 1);
+                if (wrongSet.has(qid)) wrongSet.delete(qid);
+                if (currentIndex >= questionBank.length) currentIndex = questionBank.length - 1;
+                if (currentIndex < 0) currentIndex = 0;
+                saveQuestionsToLocal();
+                saveWrongSet();
+                saveProgress();
+                renderMainContent();
+            }
+        }
+    }
+    
+    function saveQuestionEdit(editedId, newText, newCorrectAnswerBool, newExplanation) {
+        if (!currentUser || currentUser.role !== 'admin') return;
+        const idx = questionBank.findIndex(q => q.id === editedId);
+        if (idx !== -1) {
+            questionBank[idx].text = newText;
+            questionBank[idx].correctAnswer = newCorrectAnswerBool;
+            questionBank[idx].explanation = newExplanation;
+            saveQuestionsToLocal();
+            renderMainContent();
+            editingQuestionId = null;
+        }
+    }
+    
     function getCurrentQuestion() {
-        return QUESTION_BANK[currentIndex];
+        if (!questionBank.length) return null;
+        return questionBank[currentIndex];
     }
     
-    function updateQuizUI(resetResult = true) {
-        if (currentMode !== 'quiz') return;
+    function handleAnswer(selectedIsCorrect) {
         const q = getCurrentQuestion();
         if (!q) return;
-        questionText.innerText = q.text;
-        qNumberSpan.innerText = `题号 ${q.id}`;
-        const isInWrong = wrongSet.has(q.id);
-        if (isInWrong) {
-            wrongFlagSpan.style.display = 'inline-block';
-            wrongFlagSpan.innerText = '⚠️ 已在错题本';
-        } else {
-            wrongFlagSpan.style.display = 'none';
-        }
-        progressIndicator.innerHTML = `第${currentIndex+1} / ${QUESTION_BANK.length}题 <span class="progress-save-tip" id="saveTip">💾 进度已记忆</span>`;
-        // 重新绑定tip元素引用 (因为innerHTML重建)
-        window.saveTipSpan = document.getElementById('saveTip');
-        if (resetResult) {
-            resultPanel.style.display = 'none';
-        }
-        // 每次改变题目时保存进度 (重要: 记忆当前刷题位置)
-        saveAllData();
-    }
-    
-    function showResult(selectedIsCorrect) {
-        const q = getCurrentQuestion();
         const realAnswer = q.correctAnswer;
-        let isUserCorrect = false;
-        if (selectedIsCorrect === true && realAnswer === true) isUserCorrect = true;
-        if (selectedIsCorrect === false && realAnswer === false) isUserCorrect = true;
-        
-        resultPanel.style.display = 'block';
-        if (isUserCorrect) {
-            feedbackMsg.innerText = '✅ 回答正确！';
-            feedbackMsg.className = 'feedback correct-feedback';
-        } else {
-            feedbackMsg.innerText = '❌ 回答错误！正确答案是：' + (realAnswer ? '正确' : '错误');
-            feedbackMsg.className = 'feedback wrong-feedback';
+        const isUserCorrect = (selectedIsCorrect === realAnswer);
+        const panel = document.getElementById('resultPanel');
+        const feedbackDiv = document.getElementById('feedbackMsg');
+        const explanationDivElem = document.getElementById('explanationText');
+        if (panel) panel.style.display = 'block';
+        if (feedbackDiv) {
+            if (isUserCorrect) {
+                feedbackDiv.innerText = '✅ 回答正确！';
+                feedbackDiv.className = 'feedback correct-feedback';
+            } else {
+                feedbackDiv.innerText = `❌ 回答错误！正确答案是：${realAnswer ? '正确' : '错误'}`;
+                feedbackDiv.className = 'feedback wrong-feedback';
+                addToWrongSet(q.id);
+            }
         }
-        explanationDiv.innerText = `📖 解析：${q.explanation}`;
-        
-        if (!isUserCorrect) {
-            addToWrongSet(q.id);
-            // 更新当前题目的错题标记
-            if (currentMode === 'quiz') updateQuizUI(false);
-        }
-        // 注意: 答对不移除错题，便于手动管理
+        if (explanationDivElem) explanationDivElem.innerText = `📖 解析：${q.explanation}`;
     }
     
-    function renderWrongList() {
-        if (!wrongListContainer) return;
-        const wrongQuestions = QUESTION_BANK.filter(q => wrongSet.has(q.id));
+    function renderEditorInline(q) {
+        return `
+            <div class="question-editor">
+                <div class="editor-field">
+                    <label>题目文本</label>
+                    <textarea id="editText" rows="2">${escapeHtml(q.text)}</textarea>
+                </div>
+                <div class="editor-field">
+                    <label>正确答案</label>
+                    <div class="correct-select">
+                        <label><input type="radio" name="editCorrect" value="true" ${q.correctAnswer === true ? 'checked' : ''}> 正确</label>
+                        <label><input type="radio" name="editCorrect" value="false" ${q.correctAnswer === false ? 'checked' : ''}> 错误</label>
+                    </div>
+                </div>
+                <div class="editor-field">
+                    <label>解析</label>
+                    <textarea id="editExplanation" rows="2">${escapeHtml(q.explanation)}</textarea>
+                </div>
+                <div style="display:flex; gap:12px; margin-top:12px;">
+                    <button id="saveEditBtn" class="save-edit-btn">💾 保存修改</button>
+                    <button id="cancelEditBtn" class="icon-btn">取消</button>
+                    <button id="deleteQuestionBtn" class="danger-btn">🗑 删除本题</button>
+                </div>
+            </div>
+        `;
+    }
+    
+    function renderQuizView() {
+        const q = getCurrentQuestion();
+        if (!q) return `<div class="card">暂无题目，请联系管理员添加</div>`;
+        const isInWrong = wrongSet.has(q.id);
+        const isAdmin = currentUser?.role === 'admin';
+        return `
+            <div class="card">
+                <div class="extra-toolbar" style="display:flex; justify-content:flex-end; gap:12px; margin-bottom:16px;">
+                    <button class="icon-btn" id="removeCurrentWrongBtn" style="background:#fff0f0;">🗑 移出错题本</button>
+                </div>
+                <div class="question-header">
+                    <span class="q-num">题号 ${q.id}</span>
+                    ${isInWrong ? '<span class="wrong-status">⚠️ 已在错题本</span>' : ''}
+                </div>
+                <div class="question-text">${escapeHtml(q.text)}</div>
+                <div class="action-buttons">
+                    <button class="btn-option correct-btn" id="correctAnswerBtn">✅ 正确</button>
+                    <button class="btn-option wrong-btn" id="incorrectAnswerBtn">❌ 错误</button>
+                </div>
+                <div id="resultPanel" style="display:none;" class="result-area">
+                    <div id="feedbackMsg" class="feedback"></div>
+                    <div id="explanationText" class="explanation"></div>
+                </div>
+                <div class="nav-buttons">
+                    <button class="nav-btn" id="prevBtn">◀ 上一题</button>
+                    <span>第${currentIndex+1} / ${questionBank.length}题</span>
+                    <button class="nav-btn primary" id="nextBtn">下一题 ▶</button>
+                </div>
+                ${isAdmin ? `
+                <div class="admin-panel">
+                    <div class="admin-section-title">🛠️ 管理员配置 (可编辑题目)</div>
+                    <div class="flex-between" style="margin-bottom:12px;">
+                        <button id="editCurrentQuestionBtn" class="icon-btn" style="background:#e6f0ff;">✏️ 编辑本题</button>
+                        <button id="addQuestionBtn" class="icon-btn" style="background:#e6f7ec;">➕ 新增题目</button>
+                        <button id="resetAllDataBtn" class="danger-btn">重置题库(仅管理员)</button>
+                    </div>
+                    ${editingQuestionId === q.id ? renderEditorInline(q) : ''}
+                </div>
+                ` : ''}
+            </div>
+        `;
+    }
+    
+    function renderWrongListView() {
+        const wrongQuestions = questionBank.filter(q => wrongSet.has(q.id));
+        const isAdmin = currentUser?.role === 'admin';
         if (wrongQuestions.length === 0) {
-            wrongListContainer.innerHTML = `<div class="empty-tip">📭 暂无错题，继续加油～</div>`;
-            return;
+            return `<div class="card"><div class="empty-tip">📭 暂无错题，继续加油～</div></div>`;
         }
-        let html = '';
+        let wrongHtml = `<div class="card"><div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;"><h3>📖 错题本</h3><button id="clearAllWrongBtn" class="danger-btn">清空所有错题</button></div><div class="wrong-list-container">`;
         wrongQuestions.forEach(q => {
-            html += `
-                <div class="wrong-item" data-id="${q.id}">
-                    <div class="wrong-q-title">📌 错题编号：${q.id}</div>
+            wrongHtml += `
+                <div class="wrong-item">
+                    <div class="wrong-q-title">📌 题号：${q.id}</div>
                     <div class="wrong-q-text">${escapeHtml(q.text)}</div>
                     <div class="wrong-actions">
-                        <button class="small-btn primary practice-wrong-btn" data-id="${q.id}">📖 练习本题</button>
-                        <button class="small-btn danger remove-wrong-btn" data-id="${q.id}">🗑 移出错题本</button>
+                        <button class="small-btn primary practice-wrong" data-id="${q.id}">📖 练习本题</button>
+                        <button class="small-btn danger remove-wrong" data-id="${q.id}">🗑 移出错题本</button>
+                        ${isAdmin ? `<button class="small-btn edit-wrong-admin" data-id="${q.id}">✏️ 编辑</button>` : ''}
                     </div>
                 </div>
             `;
         });
-        wrongListContainer.innerHTML = html;
-        
-        document.querySelectorAll('.practice-wrong-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const qid = btn.getAttribute('data-id');
-                const targetIndex = QUESTION_BANK.findIndex(q => q.id === qid);
-                if (targetIndex !== -1) {
-                    // 切换至刷题模式，并改变进度索引
-                    setMode('quiz');
-                    currentIndex = targetIndex;
-                    updateQuizUI(true);
-                    resultPanel.style.display = 'none';
-                    saveAllData();  // 记忆跳转后的进度
-                }
-            });
-        });
-        document.querySelectorAll('.remove-wrong-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const qid = btn.getAttribute('data-id');
-                removeFromWrongSet(qid);
-                renderWrongList(); 
-                if (currentMode === 'quiz') updateQuizUI(false);
-            });
-        });
+        wrongHtml += `</div></div>`;
+        return wrongHtml;
     }
     
-    function escapeHtml(str) {
-        return str.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
-        });
-    }
-    
-    function removeCurrentFromWrong() {
-        const q = getCurrentQuestion();
-        if (q && wrongSet.has(q.id)) {
-            removeFromWrongSet(q.id);
-            updateQuizUI(false);
-            if (currentMode === 'wrong') renderWrongList();
-            const tip = document.createElement('div');
-            tip.innerText = `✨ 已从错题本移除「${q.id}」`;
-            tip.style.cssText = 'position:fixed; bottom:20px; left:20px; background:#2c3e66; color:white; padding:6px 16px; border-radius:40px; font-size:0.8rem; z-index:999';
-            document.body.appendChild(tip);
-            setTimeout(() => tip.remove(), 1500);
-        } else {
-            alert('当前题目不在错题本中');
-        }
-    }
-    
-    function setMode(mode) {
-        currentMode = mode;
-        if (mode === 'quiz') {
-            quizView.style.display = 'block';
-            wrongView.style.display = 'none';
-            updateQuizUI(true);
-            modeBtns.forEach(btn => {
-                if (btn.getAttribute('data-mode') === 'quiz') btn.classList.add('active');
-                else btn.classList.remove('active');
-            });
-        } else {
-            quizView.style.display = 'none';
-            wrongView.style.display = 'block';
-            renderWrongList();
-            modeBtns.forEach(btn => {
-                if (btn.getAttribute('data-mode') === 'wrong') btn.classList.add('active');
-                else btn.classList.remove('active');
-            });
-        }
-    }
-    
-    function goPrev() {
-        if (currentIndex > 0) {
-            currentIndex--;
-            updateQuizUI(true);
-        } else {
-            if (confirm('已在第一题，是否跳转到最后一题？')) {
-                currentIndex = QUESTION_BANK.length - 1;
-                updateQuizUI(true);
-            }
-        }
-        saveAllData(); // 移动后保存进度
-    }
-    
-    function goNext() {
-        if (currentIndex < QUESTION_BANK.length - 1) {
-            currentIndex++;
-            updateQuizUI(true);
-        } else {
-            if (confirm('已完成最后一题，是否回到第一题？')) {
-                currentIndex = 0;
-                updateQuizUI(true);
-            }
-        }
-        saveAllData();
-    }
-    
-    function onSelectAnswer(selectedBoolean) {
-        showResult(selectedBoolean);
-    }
-    
-    function bindEvents() {
-        correctOptionBtn.addEventListener('click', () => onSelectAnswer(true));
-        incorrectOptionBtn.addEventListener('click', () => onSelectAnswer(false));
-        prevBtn.addEventListener('click', goPrev);
-        nextBtn.addEventListener('click', goNext);
-        removeCurrentWrongBtn.addEventListener('click', removeCurrentFromWrong);
-        clearAllWrongBtn.addEventListener('click', clearAllWrongQuestions);
-        resetProgressBtn.addEventListener('click', resetAllProgressAndWrong);
-        exportWrongBtn.addEventListener('click', exportWrongList);
-        modeBtns.forEach(btn => {
+    function attachEventListeners() {
+        document.querySelectorAll('.mode-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const mode = btn.getAttribute('data-mode');
-                if (mode === 'quiz') setMode('quiz');
-                else if (mode === 'wrong') setMode('wrong');
+                if (mode === 'quiz') currentMode = 'quiz';
+                else if (mode === 'wrong') currentMode = 'wrong';
+                renderMainContent();
             });
+        });
+        if (currentMode === 'quiz') {
+            const q = getCurrentQuestion();
+            if (q) {
+                document.getElementById('correctAnswerBtn')?.addEventListener('click', () => handleAnswer(true));
+                document.getElementById('incorrectAnswerBtn')?.addEventListener('click', () => handleAnswer(false));
+                document.getElementById('prevBtn')?.addEventListener('click', () => { if(questionBank.length) { currentIndex = (currentIndex - 1 + questionBank.length) % questionBank.length; saveProgress(); renderMainContent(); } });
+                document.getElementById('nextBtn')?.addEventListener('click', () => { if(questionBank.length) { currentIndex = (currentIndex + 1) % questionBank.length; saveProgress(); renderMainContent(); } });
+                document.getElementById('removeCurrentWrongBtn')?.addEventListener('click', () => { const cur = getCurrentQuestion(); if(cur) removeFromWrongSet(cur.id); });
+                if (currentUser?.role === 'admin') {
+                    document.getElementById('editCurrentQuestionBtn')?.addEventListener('click', () => { editingQuestionId = getCurrentQuestion().id; renderMainContent(); });
+                    document.getElementById('addQuestionBtn')?.addEventListener('click', () => addNewQuestion());
+                    document.getElementById('resetAllDataBtn')?.addEventListener('click', () => resetAllData());
+                    const saveEdit = document.getElementById('saveEditBtn');
+                    if (saveEdit) saveEdit.addEventListener('click', () => {
+                        const newText = document.getElementById('editText').value;
+                        const correctVal = document.querySelector('input[name="editCorrect"]:checked')?.value;
+                        const newExplanation = document.getElementById('editExplanation').value;
+                        if (newText && correctVal) saveQuestionEdit(editingQuestionId, newText, correctVal === 'true', newExplanation);
+                        else alert("请填写完整");
+                    });
+                    document.getElementById('cancelEditBtn')?.addEventListener('click', () => { editingQuestionId = null; renderMainContent(); });
+                    document.getElementById('deleteQuestionBtn')?.addEventListener('click', () => { if(editingQuestionId) deleteQuestion(editingQuestionId); });
+                }
+            }
+        } else if (currentMode === 'wrong') {
+            document.querySelectorAll('.practice-wrong').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = btn.getAttribute('data-id');
+                    const idx = questionBank.findIndex(q => q.id === id);
+                    if (idx !== -1) { currentIndex = idx; currentMode = 'quiz'; saveProgress(); renderMainContent(); }
+                });
+            });
+            document.querySelectorAll('.remove-wrong').forEach(btn => {
+                btn.addEventListener('click', (e) => { const id = btn.getAttribute('data-id'); removeFromWrongSet(id); });
+            });
+            document.getElementById('clearAllWrongBtn')?.addEventListener('click', () => clearAllWrong());
+            if (currentUser?.role === 'admin') {
+                document.querySelectorAll('.edit-wrong-admin').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const id = btn.getAttribute('data-id');
+                        editingQuestionId = id;
+                        currentMode = 'quiz';
+                        const targetIdx = questionBank.findIndex(q => q.id === id);
+                        if (targetIdx !== -1) currentIndex = targetIdx;
+                        renderMainContent();
+                    });
+                });
+            }
+        }
+    }
+    
+    function renderMainContent() {
+        if (!currentUser) return;
+        const modeBar = `
+            <div class="mode-bar">
+                <button class="mode-btn ${currentMode === 'quiz' ? 'active' : ''}" data-mode="quiz">📝 刷题模式</button>
+                <button class="mode-btn ${currentMode === 'wrong' ? 'active' : ''}" data-mode="wrong">📚 错题本</button>
+            </div>
+        `;
+        const content = currentMode === 'quiz' ? renderQuizView() : renderWrongListView();
+        const roleText = currentUser.role === 'admin' ? '管理员 (可编辑题目)' : '普通用户';
+        const adminHeader = `
+            <div class="admin-header">
+                <div class="user-badge">👤 ${currentUser.username} <span class="role-tag">${roleText}</span> | 共 ${questionBank.length} 题</div>
+                <button id="logoutBtn" class="logout-btn">🚪 退出登录</button>
+            </div>
+        `;
+        appRoot.innerHTML = adminHeader + modeBar + content;
+        attachEventListeners();
+    }
+    
+    function escapeHtml(str) { return String(str).replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+    
+    function showLogin() {
+        appRoot.innerHTML = `
+            <div class="login-overlay">
+                <div class="login-card">
+                    <h2>📚 双角色登录</h2>
+                    <input type="text" id="loginUsername" class="login-input" placeholder="用户名" autocomplete="off">
+                    <input type="password" id="loginPassword" class="login-input" placeholder="密码">
+                    <button id="doLoginBtn" class="login-btn">登录</button>
+                    <div id="loginError" class="error-msg"></div>                  
+                </div>
+            </div>
+        `;
+        document.getElementById('doLoginBtn')?.addEventListener('click', () => {
+            const user = document.getElementById('loginUsername').value.trim();
+            const pwd = document.getElementById('loginPassword').value.trim();
+            if ((user === 'admin' && pwd === 'admin_123')) {
+                currentUser = { username: 'admin', role: 'admin' };
+                loadQuestionsFromLocal();
+                loadWrongSet();
+                loadProgress();
+                renderMainContent();
+            } else if ((user === 'user' && pwd === 'user_123456')) {
+                currentUser = { username: 'user', role: 'user' };
+                loadQuestionsFromLocal();
+                loadWrongSet();
+                loadProgress();
+                renderMainContent();
+            } else {
+                document.getElementById('loginError').innerText = '用户名或密码错误';
+            }
         });
     }
     
     function init() {
-        loadAllData();    // 恢复错题集和刷题进度
-        bindEvents();
-        setMode('quiz');
-        // 确保界面与加载后的currentIndex同步
-        updateQuizUI(true);
-        resultPanel.style.display = 'none';
+        showLogin();
     }
-    
     init();
 </script>
 </body>
