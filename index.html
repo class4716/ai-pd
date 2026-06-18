@@ -2,827 +2,851 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>判断题刷题系统</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>判断题 · 错题刷题系统</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: system-ui, 'Segoe UI', 'Roboto', 'Noto Sans', sans-serif;
+            font-family: system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
         }
-
         body {
-            background: #f1f5f9;
-            padding: 24px 16px;
+            background: #f4f7fc;
             min-height: 100vh;
-        }
-
-        .app-container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        /* 登录遮罩 */
-        .login-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(8px);
             display: flex;
-            align-items: center;
             justify-content: center;
-            z-index: 1000;
+            align-items: center;
         }
-
+        .container {
+            width: 100%;
+            max-width: 860px;
+            padding: 20px;
+        }
+        /* 登录卡片 */
         .login-card {
             background: white;
-            border-radius: 48px;
-            padding: 36px 32px;
-            width: 90%;
-            max-width: 420px;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.3);
+            border-radius: 32px;
+            padding: 48px 36px;
+            box-shadow: 0 20px 40px rgba(0, 20, 40, 0.12);
             text-align: center;
+            max-width: 420px;
+            margin: 0 auto;
+            transition: 0.3s;
         }
-
         .login-card h2 {
-            margin-bottom: 24px;
-            color: #1e293b;
+            font-weight: 600;
+            font-size: 28px;
+            color: #0b2a4a;
+            margin-bottom: 8px;
         }
-
-        .login-input {
+        .login-card p {
+            color: #5b6f87;
+            margin-bottom: 32px;
+            font-size: 15px;
+        }
+        .login-card input {
             width: 100%;
             padding: 14px 18px;
-            margin: 12px 0;
-            border: 1.5px solid #e2e8f0;
+            border: 1.5px solid #dce3ed;
             border-radius: 60px;
-            font-size: 1rem;
+            font-size: 16px;
+            background: #f8faff;
             transition: 0.2s;
+            margin-bottom: 20px;
         }
-
-        .login-input:focus {
+        .login-card input:focus {
             outline: none;
-            border-color: #2c3e66;
+            border-color: #2a7de1;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(42, 125, 225, 0.15);
         }
-
-        .login-btn {
-            background: #2c3e66;
-            color: white;
-            border: none;
+        .login-card button {
             width: 100%;
-            padding: 12px;
+            padding: 14px;
+            background: #1a5bbf;
+            border: none;
             border-radius: 60px;
+            color: white;
+            font-size: 18px;
             font-weight: 600;
-            font-size: 1rem;
-            margin-top: 16px;
             cursor: pointer;
+            transition: 0.2s;
+            letter-spacing: 0.5px;
         }
-
-        .error-msg {
-            color: #e11d48;
-            font-size: 0.85rem;
+        .login-card button:hover {
+            background: #124a9e;
+            transform: scale(1.01);
+        }
+        .login-error {
+            color: #c63a3a;
+            font-size: 14px;
             margin-top: 12px;
+            min-height: 24px;
         }
-
-        .role-demo {
-            margin-top: 20px;
-            font-size: 0.75rem;
-            color: #64748b;
-            background: #f8fafc;
-            padding: 12px;
-            border-radius: 20px;
-            text-align: left;
+        /* 主刷题面板 */
+        .quiz-panel {
+            background: white;
+            border-radius: 32px;
+            padding: 28px 32px 32px;
+            box-shadow: 0 20px 40px rgba(0, 20, 40, 0.08);
+            display: none;
         }
-
-        .role-demo p {
-            margin: 6px 0;
-        }
-
-        .admin-header {
+        .quiz-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: white;
-            border-radius: 60px;
-            padding: 8px 20px;
-            margin-bottom: 24px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-        }
-
-        .user-badge {
-            background: #eef2ff;
-            padding: 6px 16px;
-            border-radius: 40px;
-            font-size: 0.85rem;
-            font-weight: 500;
-        }
-
-        .logout-btn {
-            background: none;
-            border: none;
-            color: #ef4444;
-            font-weight: 500;
-            cursor: pointer;
-            margin-left: 12px;
-        }
-
-        .mode-bar {
-            display: flex;
-            gap: 12px;
-            background: white;
-            padding: 8px 16px;
-            border-radius: 60px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-            margin-bottom: 24px;
-            justify-content: center;
-        }
-
-        .mode-btn {
-            border: none;
-            background: transparent;
-            padding: 10px 28px;
-            font-size: 1rem;
-            font-weight: 600;
-            border-radius: 40px;
-            cursor: pointer;
-            transition: all 0.2s;
-            color: #334155;
-        }
-
-        .mode-btn.active {
-            background: #2c3e66;
-            color: white;
-        }
-
-        .card {
-            background: white;
-            border-radius: 28px;
-            box-shadow: 0 12px 24px -12px rgba(0,0,0,0.15);
-            padding: 28px 24px;
-        }
-
-        .question-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
+            border-bottom: 1px solid #eef2f7;
+            padding-bottom: 18px;
+            margin-bottom: 22px;
             flex-wrap: wrap;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #eef2ff;
-            padding-bottom: 12px;
+            gap: 12px;
         }
-
-        .q-num {
-            font-size: 1.3rem;
+        .quiz-header .title {
             font-weight: 700;
-            background: #eef2ff;
-            padding: 4px 14px;
+            font-size: 22px;
+            color: #0b2a4a;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .quiz-header .title span {
+            background: #eef4ff;
+            color: #1a5bbf;
+            font-size: 16px;
+            padding: 2px 14px;
             border-radius: 40px;
+            font-weight: 500;
         }
-
-        .wrong-status {
-            font-size: 0.8rem;
-            background: #fee2e2;
-            color: #b91c1c;
-            padding: 4px 12px;
-            border-radius: 30px;
+        .progress-badge {
+            background: #e9edf4;
+            border-radius: 40px;
+            padding: 6px 18px;
+            font-weight: 500;
+            color: #1f3a5f;
+            font-size: 15px;
         }
-
+        /* 题目卡片 */
+        .question-box {
+            background: #f9fcff;
+            border-radius: 24px;
+            padding: 24px 28px;
+            margin-bottom: 24px;
+            border: 1px solid #e7edf6;
+        }
         .question-text {
-            font-size: 1.45rem;
+            font-size: 18px;
             font-weight: 500;
-            line-height: 1.4;
-            margin: 20px 0 28px;
+            line-height: 1.6;
+            color: #0b1e33;
         }
-
-        .action-buttons {
+        .question-id {
+            color: #6d7f99;
+            font-size: 14px;
+            font-weight: 400;
+            margin-right: 10px;
+        }
+        .options {
+            margin-top: 24px;
             display: flex;
-            gap: 16px;
-            margin: 20px 0 24px;
+            gap: 30px;
             flex-wrap: wrap;
         }
-
-        .btn-option {
-            flex: 1;
-            padding: 14px 0;
-            font-size: 1.1rem;
-            font-weight: 600;
-            border-radius: 60px;
-            cursor: pointer;
-            background: #f8fafc;
-            border: 1.5px solid #cbd5e1;
-            transition: all 0.2s;
-        }
-        .btn-option.correct-btn:hover { background: #dcfce7; border-color: #22c55e; }
-        .btn-option.wrong-btn:hover { background: #fee2e2; border-color: #ef4444; }
-
-        .result-area {
-            margin-top: 20px;
-            background: #f8fafc;
-            border-radius: 20px;
-            padding: 18px;
-            border-left: 5px solid #64748b;
-        }
-
-        .nav-buttons {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 28px;
-            gap: 12px;
-        }
-
-        .nav-btn {
-            background: #eef2ff;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 40px;
-            cursor: pointer;
-        }
-        .nav-btn.primary { background: #2c3e66; color: white; }
-
-        .wrong-list-container {
-            max-height: 65vh;
-            overflow-y: auto;
-        }
-        .wrong-item {
-            background: #fef9f0;
-            border-radius: 20px;
-            padding: 16px;
-            margin-bottom: 14px;
-            border: 1px solid #ffe4c4;
-        }
-        .wrong-actions {
-            display: flex;
-            gap: 12px;
-            justify-content: flex-end;
-            margin-top: 12px;
-        }
-        .small-btn {
-            padding: 6px 16px;
-            border-radius: 30px;
-            border: none;
-            font-size: 0.8rem;
-            font-weight: 500;
-            cursor: pointer;
-            background: #e2e8f0;
-        }
-        .small-btn.primary { background: #2c3e66; color: white; }
-        .small-btn.danger { background: #ffedd5; color: #b45309; }
-
-        .admin-panel {
-            margin-top: 28px;
-            border-top: 2px dashed #cbd5e1;
-            padding-top: 24px;
-        }
-        .admin-section-title {
-            font-size: 1.2rem;
-            font-weight: 700;
-            margin-bottom: 16px;
+        .option-item {
             display: flex;
             align-items: center;
             gap: 8px;
+            cursor: pointer;
+            padding: 8px 16px 8px 8px;
+            border-radius: 40px;
+            background: white;
+            border: 1.5px solid transparent;
+            transition: 0.15s;
+            font-size: 16px;
+            font-weight: 500;
+            color: #1f3a5f;
         }
-        .question-editor {
-            background: #f1f5f9;
-            border-radius: 24px;
-            padding: 20px;
-            margin-bottom: 20px;
+        .option-item:hover {
+            background: #eef4ff;
+            border-color: #b8cef0;
         }
-        .editor-field {
-            margin-bottom: 14px;
+        .option-item input[type="radio"] {
+            accent-color: #1a5bbf;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
         }
-        .editor-field label {
-            font-weight: 600;
-            display: block;
-            margin-bottom: 6px;
-            font-size: 0.85rem;
+        .option-item.selected {
+            background: #e2ebf9;
+            border-color: #1a5bbf;
         }
-        .editor-field input, .editor-field textarea {
-            width: 100%;
-            padding: 10px 14px;
+        .answer-feedback {
+            margin-top: 24px;
+            padding: 16px 20px;
             border-radius: 20px;
-            border: 1px solid #cbd5e1;
-            font-size: 0.9rem;
+            background: #f1f6fe;
+            border-left: 6px solid #1a5bbf;
+            display: none;
         }
-        .correct-select {
+        .answer-feedback.show {
+            display: block;
+        }
+        .feedback-correct {
+            border-left-color: #1e8b3c;
+            background: #eaf6ee;
+        }
+        .feedback-wrong {
+            border-left-color: #c63a3a;
+            background: #fef0ef;
+        }
+        .feedback-title {
+            font-weight: 700;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        .feedback-detail {
+            color: #1f3a5f;
+            line-height: 1.6;
+            font-size: 15px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .navigation {
             display: flex;
-            gap: 20px;
             align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 8px;
         }
-        .save-edit-btn {
-            background: #2c3e66;
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .nav-btn {
+            padding: 10px 22px;
+            border-radius: 60px;
+            border: none;
+            font-weight: 600;
+            font-size: 15px;
+            background: #eef2f7;
+            color: #1f3a5f;
+            cursor: pointer;
+            transition: 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .nav-btn:hover:not(:disabled) {
+            background: #d5dfec;
+        }
+        .nav-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .nav-btn.primary {
+            background: #1a5bbf;
             color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 40px;
-            cursor: pointer;
         }
-        .danger-btn {
-            background: #fee2e2;
-            color: #b91c1c;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 40px;
-            cursor: pointer;
+        .nav-btn.primary:hover:not(:disabled) {
+            background: #0f4a9e;
         }
-        .flex-between {
+        .nav-btn.outline {
+            background: transparent;
+            border: 1.5px solid #b8cef0;
+        }
+        .nav-btn.outline:hover:not(:disabled) {
+            background: #f0f6ff;
+        }
+        .jump-area {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #f4f8ff;
+            padding: 4px 12px 4px 18px;
+            border-radius: 60px;
+        }
+        .jump-area input {
+            width: 68px;
+            padding: 8px 6px;
+            border: 1px solid #d0ddea;
+            border-radius: 40px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 16px;
+            background: white;
+        }
+        .jump-area input:focus {
+            outline: none;
+            border-color: #1a5bbf;
+        }
+        .jump-area button {
+            background: #1a5bbf;
+            border: none;
+            color: white;
+            padding: 8px 18px;
+            border-radius: 60px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+            transition: 0.15s;
+        }
+        .jump-area button:hover {
+            background: #124a9e;
+        }
+        .wrong-book-area {
+            display: flex;
+            gap: 12px;
+            margin-top: 18px;
+            border-top: 1px solid #e2eaf3;
+            padding-top: 20px;
+            flex-wrap: wrap;
+        }
+        .wrong-book-btn {
+            background: #f0f3f8;
+            border: none;
+            border-radius: 40px;
+            padding: 10px 24px;
+            font-weight: 600;
+            color: #1f3a5f;
+            cursor: pointer;
+            transition: 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .wrong-book-btn.active {
+            background: #1a5bbf;
+            color: white;
+        }
+        .wrong-book-btn:hover {
+            background: #d5dfec;
+        }
+        .wrong-book-btn.active:hover {
+            background: #0f4a9e;
+        }
+        .badge-count {
+            background: #cbd8ea;
+            color: #0b1e33;
+            border-radius: 40px;
+            padding: 0 12px;
+            font-size: 14px;
+        }
+        .wrong-list {
+            margin-top: 12px;
+            background: #f8faff;
+            border-radius: 20px;
+            padding: 14px 20px;
+            display: none;
+            max-height: 220px;
+            overflow-y: auto;
+            border: 1px solid #e2eaf3;
+        }
+        .wrong-list.show {
+            display: block;
+        }
+        .wrong-item {
+            padding: 6px 0;
+            border-bottom: 1px dashed #dce3ed;
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 12px;
+            font-size: 15px;
         }
-        .icon-btn {
-            background: white;
+        .wrong-item button {
+            background: none;
             border: none;
-            padding: 6px 14px;
-            border-radius: 40px;
-            font-size: 0.8rem;
+            color: #1a5bbf;
+            font-weight: 600;
             cursor: pointer;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
-        .empty-tip { text-align: center; color: #64748b; padding: 40px; }
-        @media (max-width: 550px) { .question-text { font-size: 1.2rem; } }
-        .role-tag {
-            display: inline-block;
-            background: #e6f7ec;
-            color: #2b6e3c;
-            font-size: 0.7rem;
-            padding: 2px 10px;
-            border-radius: 30px;
-            margin-left: 8px;
+        .empty-wrong {
+            color: #6d7f99;
+            text-align: center;
+            padding: 16px 0;
+        }
+        @media (max-width: 600px) {
+            .login-card { padding: 32px 20px; }
+            .quiz-panel { padding: 20px 16px; }
+            .question-box { padding: 18px 16px; }
+            .options { gap: 12px; }
+            .nav-buttons { width: 100%; justify-content: center; }
+            .jump-area { width: 100%; justify-content: center; }
         }
     </style>
 </head>
 <body>
-<div id="app"></div>
+<div class="container">
+    <!-- 登录 -->
+    <div id="loginContainer" class="login-card">
+        <h2>📘 错题刷题</h2>
+        <p>登录以继续 · 判断题专项</p>
+        <input type="text" id="usernameInput" placeholder="用户名" value="">
+        <input type="password" id="passwordInput" placeholder="密码" value="">
+        <button id="loginBtn">登 录</button>
+        <div id="loginError" class="login-error"></div>
+    </div>
 
+    <!-- 主面板 -->
+    <div id="quizPanel" class="quiz-panel">
+        <div class="quiz-header">
+            <div class="title">
+                📝 错题练习
+                <span id="totalCounter">0</span>
+            </div>
+            <div class="progress-badge" id="progressLabel">1 / 1</div>
+        </div>
+
+        <div class="question-box">
+            <div class="question-text" id="questionDisplay">加载题目...</div>
+            <div class="options" id="optionsContainer"></div>
+            <div class="answer-feedback" id="feedbackArea">
+                <div class="feedback-title" id="feedbackTitle">✅ 正确答案</div>
+                <div class="feedback-detail" id="feedbackDetail"></div>
+            </div>
+        </div>
+
+        <div class="navigation">
+            <div class="nav-buttons">
+                <button class="nav-btn" id="prevBtn">◀ 上一题</button>
+                <button class="nav-btn" id="nextBtn">下一题 ▶</button>
+                <button class="nav-btn outline" id="resetBtn">⟲ 重置</button>
+            </div>
+            <div class="jump-area">
+                <span>跳转</span>
+                <input type="number" id="jumpInput" min="1" value="1">
+                <button id="jumpBtn">GO</button>
+            </div>
+        </div>
+
+        <div class="wrong-book-area">
+            <button class="wrong-book-btn" id="wrongBookToggle">📕 错题本 <span class="badge-count" id="wrongCount">0</span></button>
+            <button class="wrong-book-btn" id="clearWrongBtn">🗑️ 清空错题</button>
+        </div>
+        <div class="wrong-list" id="wrongListContainer">
+            <div id="wrongListContent"></div>
+        </div>
+    </div>
+</div>
 <script>
-    // ---------- 完整题库 (33道题，基于原文档) ----------
-    const FULL_QUESTION_BANK = [
-        { id: "902", text: "在关联分析中，支持度是用于评估变量间关联程度的指标。", correctAnswer: false, explanation: "支持度评估普遍性，置信度/提升度评估关联程度。" },
-        { id: "903", text: "遵章守法的基本要求涵盖：遵守法律法规、遵循道德规范、不参与非法活动、滥用职权、保护客户权益。", correctAnswer: false, explanation: "遵章守法不包含\"滥用职权\"，而是反对滥用职权。" },
-        { id: "907", text: "数据库管理系统只负责数据的存储，而数据的增删改查操作则完全依靠外部应用程序来实现。", correctAnswer: false, explanation: "DBMS提供数据操纵功能（DML）。" },
-        { id: "908", text: "劳动者若拒绝用人单位管理人员的违章指挥、强令冒险作业，会被视作违反劳动合同。", correctAnswer: false, explanation: "拒绝违章指挥是劳动者合法权利。" },
-        { id: "910", text: "在请求模式里，当应用程序等待输入数据时，并不会暂停自身的执行流程，它会持续运行，直到接收到输入数据才会停下。", correctAnswer: false, explanation: "请求模式下程序会阻塞等待。" },
-        { id: "911", text: "依据文件的保护时长，可将文件分为临时文件和永久文件两类。", correctAnswer: false, explanation: "文件分类通常按用途或格式，非保护时长。" },
-        { id: "916", text: "Jieba分词库仅能用于情感分析。", correctAnswer: false, explanation: "jieba是通用中文分词工具。" },
-        { id: "917", text: "面对复杂的业务需求以及日益增多的ETL任务列表，调度的基础逻辑无需添加额外策略。", correctAnswer: false, explanation: "需要优先级、依赖等调度策略。" },
-        { id: "921", text: "GOMS作为一种人机交互界面表示的理论模型，将所有任务都视为面向操作目标的，但它能够解决的问题本质以及用户间的个体差异存在局限。", correctAnswer: false, explanation: "GOMS不擅长处理个体差异和复杂决策。" },
-        { id: "923", text: "业务流程重组（BPR）属于渐进式改进方法，其主要做法是对现有流程进行小范围调整，以此提升企业性能。", correctAnswer: false, explanation: "BPR是彻底、根本性的再造。" },
-        { id: "930", text: "中文分词模型的主要功能是将连贯的汉字序列拆分成单个的汉字。", correctAnswer: false, explanation: "是拆分为有意义的词语。" },
-        { id: "932", text: "均值滤波能用于去除脉冲噪声。", correctAnswer: false, explanation: "中值滤波更适合脉冲噪声（椒盐噪声）。" },
-        { id: "936", text: "对比分析作为一种数据分析方法，其用意是找出不同数据集或数据点之间的相同之处。", correctAnswer: false, explanation: "对比分析重在找差异。" },
-        { id: "937", text: "在Word中插入目录时，先把光标移到想要插入目录的位置，再在菜单栏的\"工具栏\"选项卡中选择合适的样式，Word就会生成包含章节标题和页码的目录。", correctAnswer: false, explanation: "目录在\"引用\"选项卡下。" },
-        { id: "941", text: "仅依据测试误差，就能判断算法是否存在欠拟合。", correctAnswer: false, explanation: "需要同时看训练误差和测试误差。" },
-        { id: "943", text: "自动语言识别领域中，最常用的两种语音处理方法是梅尔滤波器组和布尔频率系数。", correctAnswer: false, explanation: "是梅尔频率倒谱系数（MFCC）。" },
-        { id: "945", text: "可用性是指产品是否能够引起用户的关注，并且让用户产生使用它的念头。", correctAnswer: false, explanation: "可用性关注有效性、效率、满意度等。" },
-        { id: "947", text: "无监督图像去噪方法只利用噪声图像来开展训练。", correctAnswer: false, explanation: "通常需要干净图像作为目标。" },
-        { id: "950", text: "ETL数据整合工具是一种硬件，用于把数据从源系统中提取出来，经过转换后加载到目标系统。", correctAnswer: false, explanation: "ETL工具是软件。" },
-        { id: "956", text: "业务流程重组（BPR）的目标是借助渐进式改进来完善现有的业务流程。", correctAnswer: false, explanation: "BPR是彻底的再造。" },
-        { id: "966", text: "业务数据主要流程的开端是数据分析与建模，它的功能是直接为数据获取工作提供指引。", correctAnswer: false, explanation: "开端是需求分析。" },
-        { id: "968", text: "图像数据处理是利用图像去噪、图形美化、图像数据减弱等手段，根据需求对图像数据进行处理的技术。", correctAnswer: false, explanation: "图像数据处理涵盖增强、分割、识别等，描述不全面或有误导。" },
-        { id: "969", text: "某旅游公司打算分析游客的消费状况，仅依据旅游消费金额这一维度进行分类，为消费金额高的游客提供豪华游服务，这种做法被认为是对象限分析法的合理运用。", correctAnswer: false, explanation: "单维度分类不是象限分析法。" },
-        { id: "974", text: "NoSQL数据库完全不支持ACID事务。", correctAnswer: false, explanation: "部分NoSQL支持单行/文档级ACID。" },
-        { id: "976", text: "运用支持向量机算法时，距离超平面越近的点，越容易被正确分类。", correctAnswer: false, explanation: "距离越远置信度越高。" },
-        { id: "977", text: "操作系统是对软件的抽象，用户借助操作系统来操控计算机。", correctAnswer: false, explanation: "操作系统是对硬件的抽象。" },
-        { id: "978", text: "以用户为中心的设计，只需看重用户的感受和体验，不必在意效率问题。", correctAnswer: false, explanation: "用户为中心的设计同时关注用户体验和效率，二者都重要。" },
-        { id: "983", text: "企业进行业务流程优化时，无需参考国内外成功企业的管理经验，只需根据自身情况就能完成优化。", correctAnswer: false, explanation: "应结合自身情况并借鉴成功经验，闭门造车不可取。" },
-        { id: "988", text: "运用计算机视觉、人脸识别、区块链、web3.0、物联网等新技术打造的新型无人零售店，实现了\"拿了就走\"等自助支付模式。", correctAnswer: false, explanation: "无人零售核心技术通常不包括区块链和web3.0。" },
-        { id: "992", text: "数据标注流程包含数据采集、数据清洗、数据标注、数据提示这几个环节。", correctAnswer: false, explanation: "包含数据质检，非\"数据提示\"。" },
-        { id: "996", text: "在经营活动中，若要条理清晰地表达信息，就需要按照SWOT法来组织语言。", correctAnswer: false, explanation: "SWOT用于战略分析，非语言组织方法。" },
-        { id: "999", text: "在数据清洗工作里，处理缺失值是唯一需要攻克的难题。", correctAnswer: false, explanation: "还有异常值、重复值、不一致等。" },
-        { id: "1000", text: "利用jieba分词库进行情感分析时，无需对原始文本数据做预处理。", correctAnswer: false, explanation: "情感分析前需要分词、去停用词等预处理。" }
-    ];
+    (function(){
+        // ---------- 原始题库 (155道判断题) ----------
+        const rawQuestions = [
+            { id: 1082, text: "ETL 数据整合工具是一种硬件，用于把数据从源系统中提取出来，经过转换后加载到目标系统。", answer: false, analysis: "ETL数据整合工具是用于将数据从源系统提取、转换和加载到目标系统中的软件。" },
+            { id: 1083, text: "当数据样本数量较少时，简单的算法更容易产生过拟合现象。", answer: false, analysis: "数据样本量过少会限制模型从训练数据中学习到足够的特征和模式，导致模型不能充分捕捉数据中的复杂性，进而出现欠拟合。欠拟合是指模型过于简单，无法很好地拟合训练数据的规律，因此，样本量过少通常会使得模型容易欠拟合。" },
+            { id: 1087, text: "数据的归类与定义工作，能够对审核时发现的错误加以修正。", answer: false, analysis: "标注数据审核能够对审核过程中发现的错误进行纠正。" },
+            { id: 1088, text: "在 Word 中设置多级列表时，需先选中要修改的文本或编号列表，接着在 “布局” 选项卡的 “段落” 组中，点击 “多级列表” 按钮旁边的下拉箭头，再选择 “定义新的多级列表”，就能生成多级列表了。", answer: false, analysis: "Word中设定多级列表要先选择要更改的文本或编号列表，在“开始”选项卡上的“段落”组中，单击“多级列表”Word 多级按钮向下箭头旁边的箭头，然后单击“定义新的多级列表”。单击左下角的“更多”，展开多级列表对话框。在列表中选择要更改的列表级别。 默认选中“1”。通过单击“整个列表”、“插入点之后”或“当前段落”选择要应用更改的位置。" },
+            { id: 1089, text: "业务流程重组（BPR）主要依靠信息技术（IT）来实现企业流程的简化，组织变革并不是它的实现手段。", answer: false, analysis: "业务流程重组（BPR）的实现手段不仅包括利用信息技术（IT）来改造和简化企业流程，还包括组织变革以达到组织精简和效率提高的目的。两者都是实现BPR的手段。" },
+            { id: 1094, text: "在每次模型训练时，按一定概率随机移除神经网络模型中指定层的节点及其相连权重，这种做法能够直接解决算法的欠拟合问题。", answer: false, analysis: "Dropout为深度学习中特有的防止神经网络模型出现过拟合现象的方法。Dropout的原理比较简单，在每一次模型训练时，按照一定的概率随机去掉神经网络模型中指定层的单元(节点)和与之相连接的权重。这些被随机去掉的单元和与之相连接的权重不参与模型的训练，只有与留下的单元相连接的权重才会得到更新。" },
+            { id: 1097, text: "NoSQL 数据库完全不支持 ACID（原子性、一致性、隔离性、持久性）事务。", answer: false, analysis: "NoSQL数据库不一定支持ACID（原子性、一致性、隔离性、持久性）事务，而不是完全不支持。" },
+            { id: 1098, text: "采用正则化方法能够增强模型对输入数据的敏感性。", answer: false, analysis: "从正则化的目的和作用来看，正则化的目标是为了减少模型对输入数据的小变化的敏感性，从而减少过拟合。因此，题目中的表述“增加模型输出对模型输入的敏感性”是不准确的" },
+            { id: 1099, text: "决策树算法中，执行剪枝操作是为了加快模型的训练速度。", answer: false, analysis: "剪枝操作的主要目的是为了防止决策树过拟合，而不是提高训练速度。过拟合是指模型在训练数据上表现很好，但在新数据上表现差。剪枝通过去除一些不必要的树枝，简化模型结构，从而提高模型的泛化能力。" },
+            { id: 1101, text: "阈值分割不需要设定灰度阈值来界定目标区域的边界。", answer: false, analysis: "灰度阈值分割法是图像分割领域中最常用的图像分割方法之一，其思路是对图像中每个像素的灰度开展分类，并设置灰度阈值来确定目标区域的边界，从而达到分割图像的目的。该方法主要通过提取对象的灰度特征，结合图像的不同灰度区域，选择合适的阈值来确定图像中每个像素所属的目标或背景区域，以及所对应的二值图像。" },
+            { id: 1106, text: "当总轮廓系数接近 1 时，意味着簇内样本距离大，且簇间最近距离小，即聚类效果不理想。", answer: false, analysis: "当总轮廓系数小于0时，说明聚类效果不佳；当总轮廓系数接近于1时，说明簇内样本的平均距离a非常小，而簇间的最近距离b非常大，进而表示聚类效果非常理想。" },
+            { id: 1109, text: "在人机交互的任务分析方法中，“任务金字塔” 主要用于展示用户完成任务时具体的步骤先后次序。", answer: false, analysis: "任务金字塔的作用是展示不同层次任务之间的关系，层次结构越高，任务越宏观。它不是专门用于描述任务步骤的顺序，而是用来揭示任务的层级和子任务的依赖关系。" },
+            { id: 1110, text: "专业行为、诚信和诚实、尊重和公平、保密和隐私、个人至上、不断学习和改进属于职业道德的基本内涵。", answer: false, analysis: "职业道德的基本内涵包含专业行为、诚信和诚实、尊重和公平、保密和隐私、社会责任、不断学习和改进。不包括个人至上。" },
+            { id: 1111, text: "业务分析方法的三个主要组成部分包括市场趋势分析、客户行为分析和竞争对手分析。", answer: false, analysis: "业务分析方法的三个主要构成部分——业务指标分析、业务模型分析及业务分析方法论。" },
+            { id: 1112, text: "当劳动合同被确认无效时，即便劳动者已经付出劳动，用人单位也可以不向其支付劳动报酬。", answer: false, analysis: "《中华人民共和国劳动合同法》第二十八条规定，劳动合同被确认无效，劳动者已付出劳动的，用人单位应当向劳动者支付劳动报酬。劳动报酬的数额，参照本单位相同或者相近岗位劳动者的劳动报酬确定。" },
+            { id: 1116, text: "智慧城市是指采用物联网、云计算、移动互联网等技术手段，以提高人民收入水平为目的。", answer: false, analysis: "智慧城市是指通过广泛采用物联网、云计算、移动互联网、大数据等新一代信息技术，提高城市规划、建设、管理、服务、生产、生活的自动化、智能化水平，使城市运转更高效、更敏捷、更低碳。" },
+            { id: 1118, text: "“恪尽职守” 的基本要求，是指从业人员在履行职责和完成工作任务时可以随意行动，只需遵守岗位要求即可。", answer: false, analysis: "\"恪尽职守\"基本要求指的是从业人员在履行职责和工作任务时应该尽职尽责，恪守岗位职责和道德准则。" },
+            { id: 1119, text: "在经营活动中，若要条理清晰地表达信息，就需要按照 SWOT 法来组织语言。", answer: false, analysis: "在经营活动之中，要想有逻辑地表达信息，就需要按照PREP法(结论一理由一事例一结论)的顺序来组织语言，还要根据目的选择不同的表达信息的方法，" },
+            { id: 1121, text: "采用 k 折交叉验证划分数据时，会将数据集分成 k 个规模相近的子集，其中 k-1 个子集的交集作为训练集。", answer: false, analysis: "k折交叉验证将数据集分成k个大小相似的子集，k-1个子集的并集作为训练集，剩下的一个子集作为测试集。每个子集都会轮流作为测试集，剩余的子集用作训练集。" },
+            { id: 1124, text: "对比分析法只包括对行业趋势、竞品的分析以及与自身的同比、环比比较，不涵盖其他类型的对比。", answer: false, analysis: "对比分析法是一种广泛应用于数据分析的方法，用于通过确定对比对象和对比维度，对目标事物和对比事物进行比较，从而识别差异、趋势和潜在的改进领域。虽然行业对比、竞品对比、与自身同比、环比是比较常见和基础的对比类型，但对比分析法的应用范围远不止于此。" },
+            { id: 1127, text: "精确率（Precision）、召回率（Recall）、准确率（Accuracy）都属于回归模型的评估指标。", answer: false, analysis: "评估指标可以直观反映模型分类或回归效果的优劣。常用的分类模型评估指标有精确率（Precision）、召回率（Recall）、准确率（Accuracy）、F1值、AUC和K-S。常用的回归模型评估指标有MSE、RMSE、MAE和MAPE。" },
+            { id: 1129, text: "ETL 工具的主要功能是直接从源系统抽取数据，不做任何转换就加载到目标数据库中。", answer: false, analysis: "ETL的核心是 Extract（抽取）、Transform（转换）、Load（加载），转换是必要阶段，包括数据清洗、整合等操作。" },
+            { id: 1131, text: "在分类任务中，KNN 算法会将输入样本的类别判定为 k 个最相似样本类别的加权平均。", answer: false, analysis: "KNN算法的原理是在训练样本集中找到与新样本最相近的k个样本，根据这k个样本的类别标签进行投票决定新样本的类别；在回归任务中，KNN算法通过k个最相似样本的值的加权平均来判定输入样本的值。因此，题目中的描述是错误的，因为分类任务中并不会使用加权平均，而是使用投票机制决定类别。" },
+            { id: 1135, text: "输出设备是可以把计算机系统处理后的信息进行输出和展示的设备，比如显示器、键盘、打印机、绘图仪等。", answer: false, analysis: "输出设备指将计算机系统处理后的信息输出和显示的计算机设备。现有计算机系统的输出设备主要有显示器、打印机、绘图仪等，而键盘属于输入设备。" },
+            { id: 1136, text: "从业者向相关方面及时、清晰地提供信息，且保证对方知晓信息的真实性与重要程度，这种做法违背了诚实公正基本要求中的公正原则。", answer: false, analysis: "诚实公正基本要求的公正：从业人员应该公正地对待所有相关方，不偏袒任何一方。基于客观事实和公正标准做出决策和评估。" },
+            { id: 1137, text: "运用支持向量机算法时，距离超平面越近的点，越容易被正确分类。", answer: false, analysis: "使用支持向量机算法时，从几何直观上来说，越接近超平面的点越难分隔。支持向量机的目标是找到一个最佳的超平面，将不同类别的数据分开。距离超平面较近的点，通常是分类的边界点，即支持向量，正是这些点最难分类，因为它们处于类别的边缘，稍微变化就可能导致分类错误。相反，距离超平面较远的点，分类结果比较确定，容易分辨其类别。" },
+            { id: 1139, text: "Apriori 算法采用的是自顶向下、逐层搜索的迭代方法。", answer: false, analysis: "传统的关联规则算法主要分为Apriori算法和FP-Growth算法两大类。Apriori算法是一种挖掘频繁项集的经典方法。Apriori算法是一种自底向上逐层搜索的迭代方法，即k-项集用于生成(k+1)-项集，每次迭代过程都需要重新扫描数据集，而且由k-项集进行自连接生成(k+1)-项集时会产生大量的候选项集。" },
+            { id: 1140, text: "职业道德是社会道德体系的重要组成部分，仅具备社会道德的一般作用。", answer: false, analysis: "职业道德是社会道德体系的重要组成部分，它一方面具有社会道德的一般作用，另一方面它又具有自身的特殊作用。" },
+            { id: 1141, text: "读取本地数据的方式，主要针对 txt、csv 格式的文本数据，且只能使用 read_csv 方法。", answer: false, analysis: "读取本地数据的用法，主要是包括txt、csv格式的文本数据，主要是使用read_csv和read_table。" },
+            { id: 1142, text: "许可他人行使软件著作权或者转让软件著作权时，双方可以通过口头协商达成一致。", answer: false, analysis: "《计算机软件保护条例》第十九条规定，许可他人专有行使软件著作权的，当事人应当订立书面合同。没有订立书面合同或者合同中未明确约定为专有许可的，被许可行使的权利应当视为非专有权利。" },
+            { id: 1143, text: "设备管理的主要作用是采用统一的方式来控制、管理和访问多种多样的内部设备。", answer: false, analysis: "设备管理的主要作用是使用统一的方式控制、管理和访问种类繁多的外部设备。" },
+            { id: 1147, text: "计算机里的运算器，又被叫做中央处理器。", answer: false, analysis: "运算器和控制器合称为中央处理器（CPU），在微型计算机中又称为微处理器，它是计算机硬件的核心部件。" },
+            { id: 1153, text: "数据增强的主要作用是扩充数据集，让模型能学习到更多的不变性，但无法增强模型的泛化能力，也不能降低过拟合的风险。", answer: false, analysis: "数据增强是一种在训练模型通过对原始图像进行变换或者合成来产生新的训练数据的技术。其主要目的是扩充数据集，使模型能够学习到更多的不变性，增加模型的泛化能力，同时减少过拟合的风险。" },
+            { id: 1154, text: "逻辑回归能够解决回归问题和分类问题。", answer: false, analysis: "逻辑回归主要用于分类问题，特别是二分类问题。" },
+            { id: 1157, text: "依据文件的保护时长，可将文件分为临时文件和永久文件两类。", answer: false, analysis: "根据文件的保护期限，可以把文件分成临时文件、档案文件和永久文件。" },
+            { id: 1160, text: "随机森林算法仅能应用于数据量较小的场景。", answer: false, analysis: "随机森林算法是一种强大的集成学习方法，能够处理不同规模的数据集。它通过构建多个决策树并结合它们的预测结果来提高模型的性能。随机森林具有较强的扩展性，尤其在处理大规模数据集时，通过并行计算和随机特征选择提高了效率和准确性。" },
+            { id: 1165, text: "劳动合同里可以约定试用期，且试用期最长不能超过三个月。", answer: false, analysis: "根据《中华人民共和国劳动法》第二十一条规定，劳动合同可以约定试用期。试用期最长不得超过六个月。" },
+            { id: 1170, text: "会员 RFM 模型中的 F 值分析表明，F 值代表顾客在单位时间内的消费金额，消费金额越高，说明顾客的忠诚度越高、潜力越大。", answer: false, analysis: "会员RFM模型中的F值分析，F值代表的是单位时间内顾客的消费频次，消费次数越高，忠诚度就越高，顾客的潜力越大。" },
+            { id: 1173, text: "企业文化培训并不包含在初级培训之内。", answer: false, analysis: "初级培训通常针对新员工或转岗员工，旨在使他们了解公司的基本情况、规章制度、产品知识和业务流程等。这种培训通常包括企业文化培训。所谓企业文化，实际上就是指企业的经营思想和作风。每个企业都有自己的企业文化，如果员工不能正确理解和继承它，就不能形成良好的工作氛围和积极向上的团队精神，那么企业的经营方针和战略目标就难以实现。" },
+            { id: 1176, text: "数据分析能够直接基于原始数据开展，不必等到数据清洗与处理完成之后。", answer: false, analysis: "业务数据的主要流程为需求分析、数据获取、数据预处理、分析与建模、模型评价与优化和部署。" },
+            { id: 1189, text: "收集那些规模庞大、生成迅速的大数据，并且能让这些来自多个源头、结构相同的大数据相互促进发挥作用，进而为大数据分析等应用提供有效支持，这是大数据采集阶段的任务，也是大数据的核心技术之一。", answer: false, analysis: "大数据的来源多种多样，如何获取这些规模大、产生速度快的大数据，并且能够使这些多源异构的大数据得以协同工作，从而有效地支撑大数据分析等应用，是大数据采集阶段的工作，也是大数据的核心技术之一。" },
+            { id: 1190, text: "数据仓库适用于处理实时事务操作，比如订单录入、库存更新等日常业务操作。", answer: false, analysis: "数据仓库的核心用途是支持分析决策（OLAP），而非实时事务处理（OLTP）。事务操作（如订单录入）由OLTP系统处理，而数据仓库通过ETL定期抽取历史数据，供分析使用。" },
+            { id: 1191, text: "简化过程是实施业务流程重组的主要技术，其核心方式是通过增设检查、校对和控制环节来提高流程的准确性。", answer: false, analysis: "实施业务流程重组的主要技术是简化过程，其核心是减少检查、校对和控制，以提高流程的效率和速度。" },
+            { id: 1194, text: "智慧校园平台借助新一代信息技术，将学校各类应用系统和资源整合为统一的有机整体，实现基于静态数据分析的教学与管理决策。", answer: false, analysis: "智慧校园平台基于新一代信息技术手段，将学校各类应用系统和资源整合为一个有机整体，构建具有高度感知能力、协同能力和服务能力的新型信息化校园环境，实现基于动态数据分析的教学与管理决策，为智慧教学、智慧管理和智慧生活提供技术支撑，促进学生和教师的智慧发展。" },
+            { id: 1195, text: "数据整合仅仅是将不同来源的数据合并到同一个存储系统中，不需要进行数据格式的转换或清洗。", answer: false, analysis: "整合数据中的数据转换是将从数据源端获取的数据按照业务需求，转换成目标端要求的数据形式，并对错误、不规范、不一致的数据进行清洗和加工。" },
+            { id: 1196, text: "可用性设计的核心目标是保证用户能在最短时间内完成任务，而不用考虑用户的学习成本。", answer: false, analysis: "可用性设计的核心不仅是确保用户高效地完成任务（效率），还包括考虑用户在学习如何使用产品时的成本和难度（易于学习性）。如果一个产品能让用户在短时间内完成任务，但学习过程非常困难，这会导致用户的不满，从而影响整体体验。" },
+            { id: 1197, text: "业务流程重组（BPR）的目标是借助渐进式改进来完善现有的业务流程。", answer: false, analysis: "业务流程重组（Business Process Reengineering，简称BPR）的目标并不是通过渐进式的改进来优化现有业务流程。相反，BPR强调的是对现有业务流程进行根本性的再思考和彻底的再设计。它涉及对企业的业务流程进行重新审视，识别并消除那些不再增加价值的步骤，然后重新构建更加高效、灵活和以客户为中心的新流程。" },
+            { id: 1200, text: "以用户为中心的设计，只需看重用户的感受和体验，不必在意效率问题。", answer: false, analysis: "用户为中心的设计要求在设计过程中综合考虑多个方面，包括用户的感受、体验、效率以及产品的有效性等。设计并不是仅仅关注用户的主观感受，而是要确保用户能够在特定的使用场景中高效、顺畅地完成任务。因此，效率是用户体验的一个重要维度，不能被忽视" },
+            { id: 1206, text: "产生式规则是直接描述系统状态及状态转换的模型，可用于对人机交互过程中的行为加以刻画。", answer: false, analysis: "产生式规则并不直接描述系统的状态和状态转换，而是通过“条件-动作”对来定义交互规则。当某个条件被满足时，相应的动作就会被触发。它主要关注的是条件匹配与行为触发的关系，而不是状态变化。" },
+            { id: 1207, text: "人机交互是一个跨学科的融合领域，仅包含计算机和通信两大科学的相关理论与方法。", answer: false, analysis: "物理空间中的人机交互是一个跨学科的研究领域,其中除了计算和通信这样的技术领域以外还涉及心理学、人机工程学、社会学等广泛领域。" },
+            { id: 1208, text: "《中华人民共和国民法典》指出，技术服务合同的受托人应当按照约定完成服务项目、解决技术问题、保证工作质量，但无需传授解决技术问题的知识。", answer: false, analysis: "《中华人民共和国民法典》第八百八十三条规定，技术服务合同的受托人应当按照约定完成服务项目，解决技术问题，保证工作质量，并传授解决技术问题的知识。" },
+            { id: 1212, text: "流程优化工作的目标仅仅包括明确现存问题和构建统一的流程优化目标。", answer: false, analysis: "流程优化工作的目标不仅包括明确现存问题和构建统一的流程优化目标，还包括针对流程优化方案形成共识，推动后续流程落地。流程优化是一个多阶段的过程，涉及识别问题、设定目标、形成共识以及实施落地等多个环节。企业必须借助项目过程组织，设置分步控制点，召开组织沟通会议以达成共识，减少流程优化问题的讨论次数，提升流程优化效率。因此，题目中的说法是不全面的，仅提到了流程优化的两个目标中的一个，忽略了形成共识和推动流程落地的重要性。" },
+            { id: 1213, text: "《民法典》自 2021 年 5 月 1 日起正式施行。该法典施行后，现行的《婚姻法》《继承法》《民法通则》《收养法》《担保法》《合同法》《物权法》《侵权责任法》《民法总则》将同时废止。", answer: false, analysis: "《中华人民共和国民法典》第一千二百六十条规定，本法自2021年1月1日起施行。《中华人民共和国婚姻法》、《中华人民共和国继承法》、《中华人民共和国民法通则》、《中华人民共和国收养法》、《中华人民共和国担保法》、《中华人民共和国合同法》、《中华人民共和国物权法》、《中华人民共和国侵权责任法》、《中华人民共和国民法总则》同时废止。" },
+            { id: 1217, text: "贝叶斯算法仅仅依据先验概率来做出最优决策。", answer: false, analysis: "贝叶斯算法是一种基于统计推断的方法，其核心思想是通过先验概率、条件概率（或似然函数）和贝叶斯公式计算后验概率，并根据后验概率做出决策。因此，贝叶斯算法的决策不仅依赖于先验概率，还需要条件概率和后验概率的计算。" },
+            { id: 1218, text: "职业守则里提到的 “严谨求是” 基本要求，是指从业人员在工作中只需对数据保持严谨。", answer: false, analysis: "职业守则中的“严谨求是”基本要求不仅指的是从业人员在工作中对待数据严谨，更强调的是以认真、细致、客观和科学的态度来处理工作事务，追求真实、准确的结果，不掺杂个人情感和主观臆断。" },
+            { id: 1220, text: "状态转换网络（STN）可以对并发行为以及复杂的多任务交互过程进行有效描述，故而适用于大型交互系统的设计工作。", answer: false, analysis: "状态转换网络（STN）的并发行为的描述能力较差。当系统具有大量状态和复杂的状态转换时，状态转换网络的规模会迅速增长，导致设计和实现的困难。" },
+            { id: 1221, text: "无监督图像去噪方法只利用噪声图像来开展训练。", answer: false, analysis: "无监督去噪方法对训练数据的限制较少，仅使用噪声图像进行训练，代表性方法有Noise2Noise列。Noise2Noise(N2N)方法使用成对的噪声图像进行训练，要求噪声残差的期望为零，在L2损失的约束下生成趋于干净的图像信号。" },
+            { id: 1225, text: "行为模型只能反映用户在使用产品或服务时展现出的一系列动作行为流程，它有助于预测用户的需求和期望，优化产品设计，进而提升用户体验。", answer: false, analysis: "行为模型是指用户在使用产品或服务时所展现出的一系列行为模式和心理过程，不仅限于动作行为。这种模型可以帮助我们预测用户的需求和期望，优化产品设计，并提供更好的用户体验。" },
+            { id: 1230, text: "AARRR 所对应的五个环节分别是获取、激活、增长、收入和推荐，它们对应着某一款产品生命周期中的 5 个关键环节。", answer: false, analysis: "AARRR分别是指获取、激活、留存、收入和传播，分别对应某一款产品生命周期中的5个重要环节。" },
+            { id: 1231, text: "ETL 任务的调度策略中，并不包含对任务进行优先级调度这一项。", answer: false, analysis: "为了满足复杂的业务需求，以及不断膨胀的ETL任务列表，以及有限的资源，会在调度的基础逻辑上增加很多的策略，比如ETL任务的类别、按照优先级调度、运行开始时间要求、任务的资源限制等。" },
+            { id: 1234, text: "GOMS 作为一种人机交互界面表示的理论模型，将所有任务都视为面向操作目标的，但它能够解决的问题本质以及用户间的个体差异存在局限。", answer: false, analysis: "GOMS是一种人机交互界面表示的理论模型，它把所有的任务都看作是面向操作目标的，但忽略了一些任务所要解决的问题本质以及用户间的个体差异。" },
+            { id: 1236, text: "空间复杂度的分析指标只关注算法运行过程中临时占用的存储空间大小。", answer: false, analysis: "空间复杂度分析指标不仅关注算法在运行过程中临时占用的存储空间大小，还包括算法本身所占用的存储空间和算法的输入输出数据所占用的存储空间。" },
+            { id: 1237, text: "人机交互的第二阶段是语音识别和手势识别，此阶段的特点是用户能更自然地与计算机进行交互。", answer: false, analysis: "人机交互的发展可以分为几个阶段，其中最早的阶段是命令行界面，其特点是用户需要输入复杂的命令来与计算机交互。第二阶段是图形用户界面（GUI），它使用图形和图标来简化用户的操作，例如Windows操作系统。第三阶段是自然用户界面（NUI），它使用更加自然的交互方式，例如语音识别和手势识别，使人们可以更加自然地与计算机交互。" },
+            { id: 1238, text: "5W2H 模型又称 “七问分析法”，它以 5 个以 W 开头的英文单词和 2 个以 H结尾的英文单词为引导进行提问，通过提问来探寻答案。", answer: false, analysis: "5W2H模型又叫“七问分析法”，即以5个以W开头的英文单词和2个以H开头的英文单词为引子进行提问，从提问中发现答案的分析方法。" },
+            { id: 1244, text: "在 Excel 中，创建数据透视表的步骤是：在 “开始” 选项卡中点击 “数据透视表” 按钮，然后在弹出的对话框里，选择需要汇总的数据范围以及要创建透视表的位置。", answer: false, analysis: "Excel中，数据透视表创建是通过在\"插入\"选项卡中，点击\"数据透视表\"按钮。在弹出的对话框中，选择要汇总的数据范围和要创建透视表的位置。定义透视表的行、列和值字段，在透视表中展示数据的汇总信息。" },
+            { id: 1245, text: "阈值化分割方法在实现上较为复杂，所需计算量较大，性能也不稳定，如今已很少被应用于图像分割领域。", answer: false, analysis: "阈值化分割是一种常用的、传统的图像分割方法，实现简单、计算量小、性能较稳定，目前在图像分割中已成为一种基本方法，得到了广泛的应用。该分割方法特别适用于目标和背景占据不同灰度级范围的图像。" },
+            { id: 1248, text: "只有当各个特征之间相互独立时，贝叶斯算法才能够适用。", answer: false, analysis: "朴素贝叶斯算法基于特征独立性的假设，但贝叶斯算法包括多种变体，可以处理不同类型的特征相关性。因此，贝叶斯算法不仅限于特征完全独立的情况。" },
+            { id: 1249, text: "ETL 指的是把数据从来源端经过转译、上传到目标端的过程。", answer: false, analysis: "ETL是将数据从数据来源端经过抽取、转换、装载至目标端的过程。" },
+            { id: 1252, text: "依托 5G 技术的智慧医疗，是在医院现有医护人员与医疗设施的基础上，促进医疗资源向高端化、精准化方向发展。", answer: false, analysis: "以5G为依托的智慧医疗，指的是以医院现有的人力资源和医疗设备为基础，借助高速率、低时延、广连接的5G网络为患者提供实时、远程、高移动性、数字化的医疗服务，切实提高医疗效率与病情诊断的准确率，推动医疗资源下沉，解决我国医疗资源分布不均，居民看病难、看病贵、医疗效率低、质量差等问题。" },
+            { id: 1255, text: "网格搜索里的超参空间是由随机点组成的。", answer: false, analysis: "网格搜索是一种常见的超参数优化方法，它通过穷举搜索在预定义的超参数空间中的每一个可能的组合。与随机搜索不同，网格搜索的超参数空间是固定的，即所有的超参数组合在开始时就已经确定，并不是随机选择的。" },
+            { id: 1256, text: "仅依据测试误差，就能判断算法是否存在欠拟合。", answer: false, analysis: "测试误差只能反映模型在新数据上的表现，并不能单独判断算法是否欠拟合。欠拟合通常表现为训练误差和测试误差都较高，这意味着模型无法有效学习训练数据中的规律。单独依赖测试误差无法判断欠拟合，因为它没有考虑模型在训练集上的表现。因此，判断是否欠拟合时需要同时监控训练误差和测试误差。" },
+            { id: 1258, text: "GOMS 模型的四种元素包括结果、操作、方法和选择规则。", answer: false, analysis: "GOMS模型它采用“分而治之”的思想，将一个任务进行多层次的细化，通过目标、操作、方法以及选择规则四个元素来描述用户行为。" },
+            { id: 1259, text: "可用性评估只需在产品开发完成后做一次，无需持续开展。", answer: false, analysis: "可用性评估不仅仅是产品开发完成后的一个环节，它应该贯穿整个产品生命周期，在不同的阶段进行不同类型的评估。在不同阶段（如需求分析、设计、开发、发布后），可以采用不同的评估方法（如专家评审、用户测试等）来确保产品的可用性和用户体验。" },
+            { id: 1263, text: "若已获得作品著作权人和原作品著作权人的许可，其他人便可对改编、翻译、注释、整理、汇编已有作品而形成的新作品进行出版、演出及制作录音录像制品。", answer: false, analysis: "《中华人民共和国著作权法》第十六条规定，使用改编、翻译、注释、整理、汇编已有作品而产生的作品进行出版、演出和制作录音录像制品，应当取得该作品的著作权人和原作品的著作权人许可，并支付报酬。" },
+            { id: 1264, text: "对比分析作为一种数据分析方法，其用意是找出不同数据集或数据点之间的相同之处。", answer: false, analysis: "对比分析是数据分析中常用的分析方法之一，是将两个或两个以上具有可比性的数据进行比较，分析其中差异，以揭示事物发展规律。" },
+            { id: 1267, text: "采用 K 近邻算法时，k 值的选择不会对分类结果造成影响。", answer: false, analysis: "K近邻算法的预测结果受到K值选择的显著影响。较小的K值可能导致模型过拟合，泛化能力差；较大的K值则可能导致欠拟合，不能很好地捕捉数据的复杂性。因此，K值的选择对于模型性能至关重要。" },
+            { id: 1268, text: "在 PowerPoint 中，点击 “动画效果” 组的 “可动窗格” 按钮，右侧会显示所有动画内容，点击删除按钮就能删掉不需要的动画效果。", answer: false, analysis: "PowerPoint中单击“动画”选项卡-“高级动画”组的“动画窗格”按钮可以在右侧呈现所有动画内容，通过单击删除按钮来删除不需要的动画效果。" },
+            { id: 1269, text: "DB 指标达到最大值时对应的类别数 k，被认为是最优类别数。", answer: false, analysis: "DB指标实际上是关于同一类中样本的紧密程度与不同簇之间样本分散程度的一个函数，从几何学的角度，使族内样本间距最小而簇间样本距离最大的分类应该是最佳的分类结果因此使DB最小化的类别数k被认为是最优类别数。" },
+            { id: 1273, text: "系统化改造法以现有的流程为应用基础，通过对现有流程进行整合、碎片化、手动改造等方式对其重新设计。", answer: false, analysis: "系统化改造法的应用基础是现有的流程，通过对现有流程进行整合、简化、自动化改造等方法对其进行重新设计，" },
+            { id: 1275, text: "人机交互是人类用户与计算机系统之间进行信息传递的媒介或方式，涵盖了支持人机双向信息交换的软件与硬件。", answer: false, analysis: "人机交互和人机界面是两个不同的概念。人机交互是指用户与计算机系统之间的通信，是人与计算机之间各种符号和动作的双向信息交换。人机界面是指人类用户与计算机系统之间的通信媒体或手段，是支持人机双向信息交换的软件和硬件。" },
+            { id: 1278, text: "RFM 模型是一种基于客户购买成果的方法，它较为动态地展示了客户的大部分形象，为个性化沟通和服务提供了依据。", answer: false, analysis: "RFM模型是一种基于客户行为细分的方法，RFM模型较为动态地显示了一个客户的全部轮廓，这对个性化的沟通和服务提供了依据。" },
+            { id: 1283, text: "自动语言识别领域中，最常用的两种语音处理方法是梅尔滤波器组和布尔频率系数。", answer: false, analysis: "自动语言识别领域中最常用的两种语音处理方法：梅尔滤波器组和梅尔频率倒谱系数。" },
+            { id: 1289, text: "在 PowerPoint 中，在左侧缩略图窗格中选中 “幻灯片母版”，该幻灯片包含了应用于当前幻灯片的共享元素和属性，像背景颜色、图像、标志、页脚等。", answer: false, analysis: "在 PowerPoint 中，通过点击 “视图” 选项卡中的 “幻灯片母版” 进入母版视图后，可以设置所有幻灯片的共享元素和属性，例如背景、图像、标志、页脚等。更改幻灯片母版后，所有应用该母版的幻灯片都会自动更新，以保持一致的格式和设计。" },
+            { id: 1294, text: "职业道德具有职业性、阶段性、实践性、继承性和多样性这些特征。", answer: false, analysis: "职业道德特征包括职业性、继承性、实践性、多样性。" },
+            { id: 1296, text: "开展交叉验证工作时，不必保持数据分布的一致性，这是由于各个子集均为随机划分而成。", answer: false, analysis: "在交叉验证中，数据集的划分方式至关重要，尤其是在类别不平衡的情况下。为了确保模型评估的公平性和可靠性，通常需要保持每个子集的类别分布与整体数据集一致。这可以通过分层交叉验证来实现，确保每个子集中的类别分布与原始数据集相同，从而避免数据划分不均导致模型评估不准确的问题。" },
+            { id: 1297, text: "在体现 “选择” 关系的状态转换网络中，状态 S1 和状态 S2 是借助外部事件直接实现转换的。", answer: false, analysis: "根据“选择”关系的状态转换网络，状态 S1 和状态 S2 并没有直接的转换关系。它们分别是由初始状态 S0 通过外部事件0 和外部事件1 进入的，状态之间的转换是通过 S0 进行的，而不是彼此直接转换。因此，这个说法是错误的。" },
+            { id: 1300, text: "在 Word 中插入目录时，先把光标移到想要插入目录的位置，再在菜单栏的 “工具栏” 选项卡中选择合适的样式，Word 就会生成包含章节标题和页码的目录。", answer: false, analysis: "在word中插入目录，先将光标放在希望插入目录的位置，在菜单栏中选择“引用”选项卡，点击“目录”按钮，在下拉菜单中选择适当的样式，Word将生成一个包含章节标题和页码的目录。" },
+            { id: 1301, text: "业务流程重组（BPR）的成功实施主要依靠信息技术（IT）的应用，而不是管理上的创新。", answer: false, analysis: "业务流程重组（BPR）的核心是一种管理创新，而不是单纯依赖信息技术（IT）。虽然IT在BPR的实施中起到了催化剂的作用，但BPR的本质是思维方式的转变和管理创新。因此，这一说法是错误的。" },
+            { id: 1302, text: "在智慧农业发展的成熟阶段，应用场景日益增多，产生的海量数据需要存储和处理，此时需要引入物联网技术架构来构建智慧农业系统。", answer: false, analysis: "随着农业信息化的深入，智慧农业应用逐渐增多，会产生海量的数据需要保存和处理，而且初期的传统系统架构可能不能满足日益增加的用户和功能的需求。因此，在智慧农业的发展阶段，需要引入云计算技术架构来构建智慧农业系统。" },
+            { id: 1307, text: "企业进行业务流程优化时，无需参考国内外成功企业的管理经验，只需根据自身情况就能完成优化。", answer: false, analysis: "根据业务流程优化的思路，企业需要借鉴国内外成功的企业管理经验，结合自身的业务特点及发展战略，才能更好地进行优化。" },
+            { id: 1308, text: "决策树无法对连续变量进行处理。", answer: false, analysis: "决策树能够处理离散和连续变量。在处理连续变量时，决策树会选择一个阈值来将数据分割成两部分，从而进行进一步的分裂。" },
+            { id: 1309, text: "ETL 工具不具备增量数据抽取的能力，每次都必须全量抽取所有数据。", answer: false, analysis: "ETL工具支持增量抽取（仅处理新增或变化的数据），以提高效率。" },
+            { id: 1310, text: "业务流程重组（BPR）属于渐进式改进方法，其主要做法是对现有流程进行小范围调整，以此提升企业性能。", answer: false, analysis: "业务流程重组（BPR）是对企业进行根本的再思考和彻底的再设计，强调革命性的变革，而不是渐进式的改进。" },
+            { id: 1315, text: "业务流程重组（BPR）能否成功实施，主要取决于内部运营效率的提高，和客户是否参与没有关系。", answer: false, analysis: "流程重组离不开客户的参与。因此，客户参与是BPR成功实施的重要因素之一" },
+            { id: 1316, text: "逻辑回归算法是直接利用线性回归模型的输出值来进行分类的。", answer: false, analysis: "逻辑回归算法本质上是通过将线性回归模型的输出值（一个实数）传递给sigmoid函数（也称为逻辑函数），将其压缩到0到1之间。这个值可以被解释为样本属于某一类别的概率。因此，逻辑回归并不直接使用线性回归的输出值进行分类，而是通过sigmoid函数将其转化为概率值来进行分类。" },
+            { id: 1323, text: "可用性是指产品是否能够引起用户的关注，并且让用户产生使用它的念头。", answer: false, analysis: "吸引用户的注意力和让用户愿意使用产品是“吸引力”这个方面的描述，而可用性更广泛地包括了用户在使用产品时的效力、效率、满意度等。吸引力只是其中的一部分，并不等于可用性本身。" },
+            { id: 1328, text: "自动语言识别领域中，仅有一种语音处理方法，即梅尔滤波器组。", answer: false, analysis: "自动语言识别领域中最常用的两种语音处理方法：梅尔滤波器组和梅尔频率倒谱系数。" },
+            { id: 1329, text: "用人单位禁止招用未满十八周岁的未成年人，其中也包含文艺、体育和特种工艺单位。", answer: false, analysis: "根据《中华人民共和国劳动法》第十五条规定，禁止用人单位招用未满十六周岁的未成年人。文艺、体育和特种工艺单位招用未满十六周岁的未成年人，必须依照国家有关规定，履行审批手续，并保障其接受义务教育的权利。" },
+            { id: 1336, text: "在 Word 中进行邮件合并时，需要在 “工具” 选项卡中点击 “开始邮件合并” 按钮，然后在下拉菜单里选择 “电子邮件”。", answer: false, analysis: "在Word中进行邮件合并时，需在“邮件”选项卡中的“开始邮件合并”组，点击“开始邮件合并”按钮，在下拉菜单中，选择“电子邮件”。" },
+            { id: 1338, text: "数据标注流程包含数据采集、数据清洗、数据标注、数据提示这几个环节。", answer: false, analysis: "数据标注流程包括数据采集、数据清洗、数据标注、数据质检。" },
+            { id: 1339, text: "PEST 模型常用于微观环境分析，分析对企业决策、课题选择、背景调查等产生影响的微观因素，在各行业中都有应用。", answer: false, analysis: "PEST模型常用来分析宏观环境，即从政治环境、经济环境、社会环境、技术环境这4个部分出发，分析影响企业的主要外部环境因素。" },
+            { id: 1340, text: "在 Word 中进行邮件合并时，导入数据源文件之前，要先保证第一行包含每一列的字段名称，且字段名称可以重复。", answer: false, analysis: "在Word中进行邮件合并时，导入数据源文件之前应该先确保第一行应包含字段名称的每一列，例如，标题、 称呼、 名字、 中间名、 姓、 地址 1 和地址 每个字段名称应该是唯一的。每一行应提供有关特定项目的信息。例如，在邮件列表中，每行可能包括有关特定收件人的信息。表应包含没有空白的行。" },
+            { id: 1342, text: "眼动追踪技术可用于评估用户对界面元素的注意力分配情况，但它并非一种直接的人机交互手段。", answer: false, analysis: "眼动追踪技术不仅可以用于评估用户对界面元素的注意力分布，它也可以作为一种直接的人机交互方式，允许用户通过眼睛的移动来控制设备或选择界面元素。" },
+            { id: 1347, text: "Jieba 分词库仅能用于情感分析。", answer: false, analysis: "Jieba 分词库可以帮助实现文本分类、 情感分析、 文本聚类等任务。" },
+            { id: 1350, text: "个人信息处理者对敏感个人信息进行处理时，无需开展个人信息保护影响评估。", answer: false, analysis: "根据《中华人民共和国个人信息保护法》第五十五条规定，有下列情形之一的，个人信息处理者应当事前进行个人信息保护影响评估，并对处理情况进行记录：（一）处理敏感个人信息；（二）利用个人信息进行自动化决策；（三）委托处理个人信息、向其他个人信息处理者提供个人信息、公开个人信息；（四）向境外提供个人信息；（五）其他对个人权益有重大影响的个人信息处理活动。" },
+            { id: 1351, text: "数据库管理系统只负责数据的存储，而数据的增删改查操作则完全依靠外部应用程序来实现。", answer: false, analysis: "DBMS的核心功能之一是直接提供数据操作能力，包括数据的插入、删除、修改和查询，无需依赖外部应用程序直接处理底层数据。" },
+            { id: 1352, text: "图形数据库是利用表结构（行和列）来存储数据的。", answer: false, analysis: "图形数据库以节点（实体）和边（关系）的模型存储数据，而非传统表结构。表结构是关系型数据库（如MySQL）的特征。" },
+            { id: 1353, text: "多点触控作为人机交互的一项新技术，它允许单个用户用一根手指同时发送输入信号，并能根据动态手势做出即时响应。", answer: false, analysis: "多点触控技术是一种允许多用户、多手指同时传输输入信号，并根据动态手势进行实时响应的新型交互技术。" },
+            { id: 1358, text: "各个培训阶段的流程毫无区别，完全一致，区别仅在于培训内容的深浅程度不同。", answer: false, analysis: "在企业培训管理的不同阶段，工作的重点、培训起到的作用、做好培训管理工作的关键点以及考核培训管理成果的指标都是不同的。" },
+            { id: 1360, text: "利用 jieba 分词库进行情感分析时，无需对原始文本数据做预处理。", answer: false, analysis: "使用Jieba分词库进行情感分析首先需要对原始文本数据进行预处理，包括去除停用词、特殊符号等。" },
+            { id: 1363, text: "不少复杂问题仅依靠人工智能等自动化技术，就能得到精准且高效的处理结果。", answer: false, analysis: "随着数量庞大的知识与信息的产生，许多复杂的问题单纯依靠人工智能等自动化技术很难获得精确且高效的处理结果，往往需要借助于人机协同和交互来实现最终的目标。" },
+            { id: 1365, text: "在数据整合的过程里，数据转换工作必须在数据加载到目标系统之后才进行。", answer: false, analysis: "数据转换是加载前的必要步骤。若先加载原始数据再转换，会导致目标系统中存储大量无效或冗余数据，增加后续处理成本。" },
+            { id: 1367, text: "业务流程重组（BPR）只能通过研究和描述企业现有的业务流程来进行重新设计，没办法从零开始打造理想的业务流程。", answer: false, analysis: "业务流程重组可以通过研究和描述现有业务流程进行重新设计，也可以从零开始构建理想的业务流程，这两种方法通常结合使用。" },
+            { id: 1372, text: "《中华人民共和国网络安全法》提及，网信部门及有关部门在履行网络安全保护职责时获取的信息，可用于其他方面。", answer: false, analysis: "《中华人民共和国网络安全法》第三十条规定，网信部门和有关部门在履行网络安全保护职责中获取的信息，只能用于维护网络安全的需要，不得用于其他用途。" },
+            { id: 1373, text: "遵章守法的基本要求涵盖：遵守法律法规、遵循道德规范、不参与非法活动、滥用职权、保护客户权益、合规经营。", answer: false, analysis: "职业守则中的\"遵章守法\"基本要求指的是从业人员应该遵守法律法规和相关规定。包括遵守法律法规、遵循道德规范、不参与非法活动、保护客户权益、合规经营等方面。滥用职权对个人和公司均会造成负面影响，不属于遵章守法的基本要求。" },
+            { id: 1377, text: "在关联分析中，支持度是用于评估变量间关联程度的指标。", answer: false, analysis: "支持度用于衡量关联规则在数据集中出现的频率。支持度越高，表示该关联规则在数据集中越普遍。" },
+            { id: 1379, text: "面对复杂的业务需求以及日益增多的 ETL 任务列表，调度的基础逻辑无需添加额外策略。", answer: false, analysis: "为了满足复杂的业务需求，以及不断膨胀的ETL任务列表，以及有限的资源，会在调度的基础逻辑上增加很多的策略，比如ETL任务的类别、按照优先级调度、运行开始时间要求、任务的资源限制等。" },
+            { id: 1381, text: "在请求模式里，当应用程序等待输入数据时，并不会暂停自身的执行流程，它会持续运行，直到接收到输入数据才会停下。", answer: false, analysis: "请求模式要求应用程序暂停，直到输入设备提供所需的数据后才继续执行。" },
+            { id: 1383, text: "企业培训管理的初级阶段，是不断向新的高度发起冲击的阶段。", answer: false, analysis: "培训管理初级阶段是企业培训管理从无到有的阶段。" },
+            { id: 1385, text: "业务数据主要流程的开端是数据分析与建模，它的功能是直接为数据获取工作提供指引。", answer: false, analysis: "业务数据的主要流程为需求分析、数据获取、数据预处理、分析与建模、模型评价与优化和部署。" },
+            { id: 1386, text: "劳动者若拒绝用人单位管理人员的违章指挥、强令冒险作业，会被视作违反劳动合同。", answer: false, analysis: "《中华人民共和国劳动合同法》第三十二条规定，劳动者拒绝用人单位管理人员违章指挥、强令冒险作业的，不视为违反劳动合同。" },
+            { id: 1391, text: "图像数据处理是利用图像去噪、图形美化、图像数据减弱等手段，根据需求对图像数据进行处理的技术。", answer: false, analysis: "图像数据处理是利用图像数据去噪、图形分割、图像数据增强等手段根据需求对图像数据进行处理的技术" },
+            { id: 1393, text: "并发性、共享性、虚拟性和异步性是现代操作系统都具备的特性，而虚拟性是其中最为重要的特征。", answer: false, analysis: "现代操作系统都具有并发性、共享性、虚拟性和异步性，其中并发性是操作系统最重要的特征，其他3个特性均基于并发性而存在。" },
+            { id: 1394, text: "自然交互技术只包含手势识别和面部表情识别这两项内容。", answer: false, analysis: "自然交互技术包括手势识别、面部表情识别、眼动跟踪等。" },
+            { id: 1397, text: "可用性评估的关注点仅在于产品的功能与性能，而不涉及用户的需求和使用体验。", answer: false, analysis: "可用性评估的核心目标是确保产品不仅能实现预定的功能，还能够有效满足用户的需求，并提供良好的用户体验。在可用性评估中，设计人员会关注用户的易用性、交互流程、界面设计、以及产品是否能够满足用户的实际需求，功能和性能固然重要，但用户体验和需求是决定产品可用性的关键因素。" },
+            { id: 1398, text: "均值滤波能用于去除脉冲噪声。", answer: false, analysis: "脉冲噪声是一种常见的噪声类型，其特点是像素值突然跳变到极值。对于脉冲噪声，中值滤波具有明显的优势。" },
+            { id: 1400, text: "运用计算机视觉、人脸识别、区块链、web3.0、物联网等新技术打造的新型无人零售店，实现了 “拿了就走” 等自助支付模式。", answer: false, analysis: "在计算机视觉、人脸识别、物联网等新技术的推动下，诞生了以AmazonGo为代表的新型无人零售店，通过“拿了就走”等自助支付手段，为消费者提供新的用户体验，也为商家节约人力成本。" },
+            { id: 1401, text: "特征选择是去掉原有数据，进而生成新的变量。", answer: false, analysis: "特征选择是从现有的特征集合中挑选出最相关、最有用的特征，目的是提高模型的性能，减少冗余特征，并避免过拟合。特征选择并不涉及生成新的变量，这通常是特征构造或特征工程的任务。" },
+            { id: 1405, text: "操作系统是对软件的抽象，用户借助操作系统来操控计算机。", answer: false, analysis: "操作系统是硬件的抽象，用户通过操作系统来控制计算机硬件和计算机资源的分配。" },
+            { id: 1406, text: "借助 5G 网络高效率、广连接的特性，把车、路、人等要素连接起来，形成能够随时通信、实时监控、即时决策的智慧交通网络。", answer: false, analysis: "5G作为新一代通信技术，对智慧交通的发展起到强大的推动作用。5G网络依托高速率、大连接的特性，连接车、路、人、云等对象，形成一张可随时通信、实时监控、即时决策的智慧交通网络。" },
+            { id: 1407, text: "NoSQL 数据库遵循 BASE 模型，所以为了追求高可用性而完全放弃了数据一致性。", answer: false, analysis: "BASE模型并不完全放弃一致性，而是通过最终一致性在可用性与一致性之间权衡。" },
+            { id: 1413, text: "SWOT 模型从优势、劣势、因素、结果这 4 个角度对企业现状展开分析，并对未来进行预测。", answer: false, analysis: "SWOT模型从优势、劣势、机会、威胁4个方面对企业的现状进行分析，同时对未来加以预测。" },
+            { id: 1419, text: "针对技术人员的培训，只需着重进行技术知识与技能方面的培养，其他方面的培训无关紧要。", answer: false, analysis: "根据技术人员的特点，对技术人员培训的主要项目有：计算机编程，程序和网络维护、操作，新设备的维护、维修与操作，安全常识，产品知识，全面质量管理，目标管理，管理信息系统，市场营销，财务管理，新产品研制，材料替代，生产管理，工业工程，品质工程等。对技术人员的培训是多方面的，也就是说，企业所需要的技术人员应该具有较全面的能力和素质。" },
+            { id: 1420, text: "LOTOS 由两部分组成，第一部分以进程代数 CCS 为基础，用于描述进程的演化结果；第二部分以抽象数据类型语言 ACT-ONE 为基础，用于描述数据结构和值表达式。", answer: false, analysis: "LOTOS包括两个部分，第一部分基于进程代数CCS，描述进程的行为和相互作用，第二部分基于抽象数据类型语言ACT-ONE，描述数据结构和值表达式。" },
+            { id: 1421, text: "中文分词模型的主要功能是将连贯的汉字序列拆分成单个的汉字。", answer: false, analysis: "中文分话模型包括基于规则匹配的分词模型和基于统计学的分词模型，将原来的中文文字序列中切分出词语。" },
+            { id: 1426, text: "仅使用一次留出法得到的估计结果是足够稳定可靠的。", answer: false, analysis: "单次使用留出法时，训练集和测试集的划分是随机的，且通常只进行一次。这意味着模型的评估结果可能会受单次数据划分的影响，从而导致结果的不稳定性。例如，某次划分可能恰好选取了某些具有特殊性质的数据，导致评估结果偏高或偏低。" },
+            { id: 1427, text: "某旅游公司打算分析游客的消费状况，仅依据旅游消费金额这一维度进行分类，为消费金额高的游客提供豪华游服务，这种做法被认为是对象限分析法的合理运用。", answer: false, analysis: "象限分析法需要两个或多个维度来划分象限，而此处仅使用一个维度，不符合象限分析法的运用方式。" },
+            { id: 1429, text: "在数据清洗工作里，处理缺失值是唯一需要攻克的难题。", answer: false, analysis: "在众多数据中总是存在着许多脏数据，即不完整、不规范、不准确的数据，而数据清洗就是指彻底清除脏数据，包括检查数据一致性，处理无效值、异常值和缺失值等，从而提高数据质量，而不单是处理缺失值。" },
+            { id: 1431, text: "RFM 模型是一种依据客户行为进行细分的方式，它以相对静态的形式呈现出客户的完整形象，为开展个性化沟通与服务提供了参考。", answer: false, analysis: "RFM模型是一种基于客户行为细分的方法，RFM模型较为动态地显示了一个客户的全部轮廓，这对个性化的沟通和服务提供了依据." },
+            { id: 1432, text: "分类模型的评估指标包含 MSE 和 RMSE。", answer: false, analysis: "评估指标可以直观反映模型分类或回归效果的优劣。常用的分类模型评估指标有精确率、准确率、召回率F1值、AUC和K-S。常用的回归模型评估指标有MSE、RMSE、MAE和MAPE。" }
+        ];
 
-    // 存储Keys (区分角色存储，但普通用户和管理员共用同一套题库? 一般管理员修改题库影响所有人，更符合实际)
-    const STORAGE_QUESTIONS = "dual_role_question_bank";
-    const STORAGE_WRONG_SET = "wrong_set_common";   // 错题本独立存储（每个账号错题分开, 用role+username标记）
-    const STORAGE_PROGRESS = "progress_common";
-    
-    let questionBank = [];
-    let wrongSet = new Set();
-    let currentIndex = 0;
-    let currentMode = "quiz";
-    let currentUser = null;      // { username, role }
-    let editingQuestionId = null;
+        // ---------- 全局状态 ----------
+        let questions = [...rawQuestions];
+        let currentIndex = 0;               // 0-based
+        let userAnswers = new Array(questions.length).fill(null); // null / true / false
+        let wrongIds = new Set();           // 存题目id (错题)
+        let isLoggedIn = false;
 
-    const appRoot = document.getElementById('app');
+        // DOM 引用
+        const loginContainer = document.getElementById('loginContainer');
+        const quizPanel = document.getElementById('quizPanel');
+        const loginBtn = document.getElementById('loginBtn');
+        const loginError = document.getElementById('loginError');
+        const usernameInput = document.getElementById('usernameInput');
+        const passwordInput = document.getElementById('passwordInput');
 
-    // 获取当前用户的存储key后缀
-    function getUserStorageSuffix() {
-        if (!currentUser) return "guest";
-        return `${currentUser.username}_${currentUser.role}`;
-    }
-    
-    function saveWrongSet() {
-        if (!currentUser) return;
-        const key = `${STORAGE_WRONG_SET}_${getUserStorageSuffix()}`;
-        localStorage.setItem(key, JSON.stringify(Array.from(wrongSet)));
-    }
-    
-    function loadWrongSet() {
-        if (!currentUser) return;
-        const key = `${STORAGE_WRONG_SET}_${getUserStorageSuffix()}`;
-        const raw = localStorage.getItem(key);
-        if (raw) {
-            try {
-                const arr = JSON.parse(raw);
-                wrongSet = new Set(arr);
-            } catch(e) { wrongSet = new Set(); }
-        } else { wrongSet = new Set(); }
-        // 过滤无效id
-        const validIds = new Set(questionBank.map(q => q.id));
-        for (let w of wrongSet) if (!validIds.has(w)) wrongSet.delete(w);
-        saveWrongSet();
-    }
-    
-    function saveProgress() {
-        if (!currentUser) return;
-        const key = `${STORAGE_PROGRESS}_${getUserStorageSuffix()}`;
-        localStorage.setItem(key, currentIndex.toString());
-    }
-    
-    function loadProgress() {
-        if (!currentUser) return;
-        const key = `${STORAGE_PROGRESS}_${getUserStorageSuffix()}`;
-        const idx = localStorage.getItem(key);
-        if (idx !== null) {
-            let i = parseInt(idx, 10);
-            if (!isNaN(i) && i >= 0 && i < questionBank.length) currentIndex = i;
-            else currentIndex = 0;
-        } else { currentIndex = 0; }
-        if (currentIndex >= questionBank.length) currentIndex = 0;
-        saveProgress();
-    }
+        const questionDisplay = document.getElementById('questionDisplay');
+        const optionsContainer = document.getElementById('optionsContainer');
+        const feedbackArea = document.getElementById('feedbackArea');
+        const feedbackTitle = document.getElementById('feedbackTitle');
+        const feedbackDetail = document.getElementById('feedbackDetail');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const jumpInput = document.getElementById('jumpInput');
+        const jumpBtn = document.getElementById('jumpBtn');
+        const totalCounter = document.getElementById('totalCounter');
+        const progressLabel = document.getElementById('progressLabel');
+        const wrongBookToggle = document.getElementById('wrongBookToggle');
+        const clearWrongBtn = document.getElementById('clearWrongBtn');
+        const wrongListContainer = document.getElementById('wrongListContainer');
+        const wrongListContent = document.getElementById('wrongListContent');
+        const wrongCount = document.getElementById('wrongCount');
 
-    function saveQuestionsToLocal() {
-        localStorage.setItem(STORAGE_QUESTIONS, JSON.stringify(questionBank));
-    }
+        // ---------- 辅助函数 ----------
+        function renderQuestion(index) {
+            const q = questions[index];
+            if (!q) return;
+            // 题目文本
+            questionDisplay.innerHTML = `<span class="question-id">#${q.id}</span> ${q.text}`;
+            // 选项 (对/错)
+            optionsContainer.innerHTML = '';
+            const labels = ['正确', '错误'];
+            const values = [true, false];
+            const selected = userAnswers[index];
 
-    function loadQuestionsFromLocal() {
-        const stored = localStorage.getItem(STORAGE_QUESTIONS);
-        if (stored) {
-            try {
-                const parsed = JSON.parse(stored);
-                if (Array.isArray(parsed) && parsed.length === FULL_QUESTION_BANK.length) {
-                    questionBank = parsed;
-                    return;
-                }
-            } catch(e) {}
-        }
-        questionBank = JSON.parse(JSON.stringify(FULL_QUESTION_BANK));
-        saveQuestionsToLocal();
-    }
-
-    // 错题操作
-    function addToWrongSet(qid) {
-        if (!wrongSet.has(qid)) {
-            wrongSet.add(qid);
-            saveWrongSet();
-            refreshWrongFlagUI(qid, true);
-        }
-    }
-    function removeFromWrongSet(qid) {
-        if (wrongSet.has(qid)) {
-            wrongSet.delete(qid);
-            saveWrongSet();
-            refreshWrongFlagUI(qid, false);
-        }
-    }
-    function refreshWrongFlagUI(qid, isNowWrong) {
-        if (currentMode === 'quiz') {
-            const cur = getCurrentQuestion();
-            if (cur && cur.id === qid) {
-                const flagSpan = document.querySelector('.wrong-status');
-                if (flagSpan) {
-                    if (isNowWrong) {
-                        flagSpan.style.display = 'inline-block';
-                        flagSpan.innerText = '⚠️ 已在错题本';
-                    } else {
-                        flagSpan.style.display = 'none';
+            values.forEach((val, i) => {
+                const div = document.createElement('div');
+                div.className = 'option-item' + (selected === val ? ' selected' : '');
+                const radio = document.createElement('input');
+                radio.type = 'radio';
+                radio.name = 'questionOption';
+                radio.value = val;
+                radio.checked = (selected === val);
+                radio.addEventListener('change', function(e) {
+                    if (e.target.checked) {
+                        handleOptionSelect(index, val);
                     }
-                } else { renderMainContent(); }
-            } else if (currentMode === 'wrong') { renderMainContent(); }
-        } else if (currentMode === 'wrong') { renderMainContent(); }
-    }
-    function clearAllWrong() {
-        if (confirm('清空所有错题记录？')) {
-            wrongSet.clear();
-            saveWrongSet();
-            renderMainContent();
-        }
-    }
+                });
+                const label = document.createElement('span');
+                label.textContent = labels[i];
+                div.appendChild(radio);
+                div.appendChild(label);
+                optionsContainer.appendChild(div);
+            });
 
-    // 管理员专用: 重置题库等
-    function resetAllData() {
-        if (!currentUser || currentUser.role !== 'admin') return;
-        if (confirm('重置全部数据：恢复33道原始题目，清除所有用户的错题和进度？不可撤销！')) {
-            questionBank = JSON.parse(JSON.stringify(FULL_QUESTION_BANK));
-            saveQuestionsToLocal();
-            // 注意: 不清除其他用户错题，但重置题库后所有用户错题ID可能失效，这里仅清除当前用户的错题本更安全
-            wrongSet.clear();
-            saveWrongSet();
+            // 更新反馈区域 (如果已选)
+            if (selected !== null) {
+                showFeedback(index);
+            } else {
+                feedbackArea.classList.remove('show', 'feedback-correct', 'feedback-wrong');
+            }
+
+            // 更新导航按钮
+            prevBtn.disabled = (index === 0);
+            nextBtn.disabled = (index === questions.length - 1);
+            progressLabel.textContent = `${index+1} / ${questions.length}`;
+            totalCounter.textContent = questions.length;
+            // 跳转输入框同步
+            jumpInput.value = index + 1;
+
+            // 滚动到顶部
+            quizPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function handleOptionSelect(index, value) {
+            userAnswers[index] = value;
+            // 判断对错，更新错题本
+            const q = questions[index];
+            const isCorrect = (value === q.answer);
+            if (!isCorrect) {
+                wrongIds.add(q.id);
+            } else {
+                wrongIds.delete(q.id);
+            }
+            // 重新渲染当前题目 (更新样式 & 反馈)
+            renderQuestion(index);
+            updateWrongCount();
+            // 如果错题列表打开，刷新列表
+            if (wrongListContainer.classList.contains('show')) {
+                renderWrongList();
+            }
+        }
+
+        function showFeedback(index) {
+            const q = questions[index];
+            const selected = userAnswers[index];
+            if (selected === null) {
+                feedbackArea.classList.remove('show');
+                return;
+            }
+            const isCorrect = (selected === q.answer);
+            feedbackArea.className = 'answer-feedback show';
+            feedbackArea.classList.add(isCorrect ? 'feedback-correct' : 'feedback-wrong');
+            feedbackTitle.textContent = isCorrect ? '✅ 回答正确' : '❌ 回答错误';
+            const correctText = q.answer ? '正确' : '错误';
+            feedbackDetail.innerHTML = `<strong>正确答案：${correctText}</strong><br>📖 ${q.analysis}`;
+        }
+
+        function updateWrongCount() {
+            wrongCount.textContent = wrongIds.size;
+            // 同时更新错题本按钮状态
+            if (wrongIds.size === 0) {
+                wrongBookToggle.classList.remove('active');
+            } else {
+                wrongBookToggle.classList.add('active');
+            }
+        }
+
+        function renderWrongList() {
+            if (wrongIds.size === 0) {
+                wrongListContent.innerHTML = '<div class="empty-wrong">🎉 暂无错题，继续加油！</div>';
+                return;
+            }
+            let html = '';
+            // 按照题目id 排序
+            const sortedIds = Array.from(wrongIds).sort((a,b)=>a-b);
+            sortedIds.forEach(id => {
+                const q = questions.find(item => item.id === id);
+                if (!q) return;
+                const idx = questions.indexOf(q);
+                html += `<div class="wrong-item">
+                    <span>#${q.id} ${q.text.slice(0, 40)}${q.text.length>40?'...':''}</span>
+                    <button data-idx="${idx}">跳转</button>
+                </div>`;
+            });
+            wrongListContent.innerHTML = html;
+            // 绑定跳转事件
+            wrongListContent.querySelectorAll('button[data-idx]').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    const idx = parseInt(this.dataset.idx, 10);
+                    if (!isNaN(idx) && idx >=0 && idx < questions.length) {
+                        currentIndex = idx;
+                        renderQuestion(currentIndex);
+                        // 关闭错题列表
+                        wrongListContainer.classList.remove('show');
+                    }
+                });
+            });
+        }
+
+        // 重置当前题目选中状态 (不清除错题)
+        function resetCurrentQuestion() {
+            const idx = currentIndex;
+            userAnswers[idx] = null;
+            // 但错题本中如果有这道题，要移除 (因为重置相当于取消作答)
+            const q = questions[idx];
+            wrongIds.delete(q.id);
+            renderQuestion(idx);
+            updateWrongCount();
+            if (wrongListContainer.classList.contains('show')) renderWrongList();
+        }
+
+        // 清空所有错题 (仅清除错题本，不影响已选状态)
+        function clearWrongBook() {
+            if (wrongIds.size === 0) return;
+            if (confirm('确定要清空所有错题记录吗？')) {
+                wrongIds.clear();
+                updateWrongCount();
+                renderWrongList();
+                // 重新渲染当前题，去掉错误标记（但保留已选答案）
+                renderQuestion(currentIndex);
+            }
+        }
+
+        // ---------- 登录逻辑 ----------
+        function handleLogin() {
+            const user = usernameInput.value.trim();
+            const pass = passwordInput.value.trim();
+            
+			if(user == 'admin' && pass == 'admin_123'){
+				isAdmin = true;			
+							
+			} else if(user == 'user' && pass == 'user_123456'){
+				isAdmin = false;				
+							
+			} else{
+				isAdmin = null;
+				loginError.textContent = '用户名密码错误，请重试';
+				return;
+			}
+            // 任意非空即登录成功
+            isLoggedIn = true;
+            loginContainer.style.display = 'none';
+            quizPanel.style.display = 'block';
+            // 初始化题目
             currentIndex = 0;
-            saveProgress();
-            editingQuestionId = null;
-            renderMainContent();
-            alert('已恢复完整33道题库，当前用户的错题和进度已重置');
+            userAnswers = new Array(questions.length).fill(null);
+            wrongIds.clear();
+            renderQuestion(0);
+            updateWrongCount();
+            renderWrongList();
+            loginError.textContent = '';
         }
-    }
-    
-    function addNewQuestion() {
-        if (!currentUser || currentUser.role !== 'admin') return;
-        let newId = prompt("请输入新题号 (唯一，例如 2001):");
-        if (!newId) return;
-        if (questionBank.some(q => q.id === newId)) { alert("题号已存在"); return; }
-        let newText = prompt("请输入题目内容:");
-        if (!newText) return;
-        let isCorrectRaw = confirm("本题正确答案是“正确”吗？\n确定=正确，取消=错误");
-        let newExplanation = prompt("请输入解析:") || "暂无解析";
-        questionBank.push({
-            id: newId,
-            text: newText,
-            correctAnswer: isCorrectRaw,
-            explanation: newExplanation
-        });
-        saveQuestionsToLocal();
-        renderMainContent();
-    }
-    
-    function deleteQuestion(qid) {
-        if (!currentUser || currentUser.role !== 'admin') return;
-        if (questionBank.length <= 1) { alert("至少保留一道题目"); return; }
-        if (confirm(`永久删除题号 ${qid} 吗？`)) {
-            const idx = questionBank.findIndex(q => q.id === qid);
-            if (idx !== -1) {
-                questionBank.splice(idx, 1);
-                if (wrongSet.has(qid)) wrongSet.delete(qid);
-                if (currentIndex >= questionBank.length) currentIndex = questionBank.length - 1;
-                if (currentIndex < 0) currentIndex = 0;
-                saveQuestionsToLocal();
-                saveWrongSet();
-                saveProgress();
-                renderMainContent();
+
+        // ---------- 事件绑定 ----------
+        loginBtn.addEventListener('click', handleLogin);
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !isLoggedIn) {
+                handleLogin();
             }
-        }
-    }
-    
-    function saveQuestionEdit(editedId, newText, newCorrectAnswerBool, newExplanation) {
-        if (!currentUser || currentUser.role !== 'admin') return;
-        const idx = questionBank.findIndex(q => q.id === editedId);
-        if (idx !== -1) {
-            questionBank[idx].text = newText;
-            questionBank[idx].correctAnswer = newCorrectAnswerBool;
-            questionBank[idx].explanation = newExplanation;
-            saveQuestionsToLocal();
-            renderMainContent();
-            editingQuestionId = null;
-        }
-    }
-    
-    function getCurrentQuestion() {
-        if (!questionBank.length) return null;
-        return questionBank[currentIndex];
-    }
-    
-    function handleAnswer(selectedIsCorrect) {
-        const q = getCurrentQuestion();
-        if (!q) return;
-        const realAnswer = q.correctAnswer;
-        const isUserCorrect = (selectedIsCorrect === realAnswer);
-        const panel = document.getElementById('resultPanel');
-        const feedbackDiv = document.getElementById('feedbackMsg');
-        const explanationDivElem = document.getElementById('explanationText');
-        if (panel) panel.style.display = 'block';
-        if (feedbackDiv) {
-            if (isUserCorrect) {
-                feedbackDiv.innerText = '✅ 回答正确！';
-                feedbackDiv.className = 'feedback correct-feedback';
+        });
+
+        prevBtn.addEventListener('click', function() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                renderQuestion(currentIndex);
+            }
+        });
+        nextBtn.addEventListener('click', function() {
+            if (currentIndex < questions.length - 1) {
+                currentIndex++;
+                renderQuestion(currentIndex);
+            }
+        });
+
+        resetBtn.addEventListener('click', resetCurrentQuestion);
+
+        jumpBtn.addEventListener('click', function() {
+            let val = parseInt(jumpInput.value, 10);
+            if (isNaN(val) || val < 1) val = 1;
+            if (val > questions.length) val = questions.length;
+            currentIndex = val - 1;
+            renderQuestion(currentIndex);
+        });
+        jumpInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                jumpBtn.click();
+            }
+        });
+
+        wrongBookToggle.addEventListener('click', function() {
+            const isOpen = wrongListContainer.classList.contains('show');
+            if (isOpen) {
+                wrongListContainer.classList.remove('show');
             } else {
-                feedbackDiv.innerText = `❌ 回答错误！正确答案是：${realAnswer ? '正确' : '错误'}`;
-                feedbackDiv.className = 'feedback wrong-feedback';
-                addToWrongSet(q.id);
-            }
-        }
-        if (explanationDivElem) explanationDivElem.innerText = `📖 解析：${q.explanation}`;
-    }
-    
-    function renderEditorInline(q) {
-        return `
-            <div class="question-editor">
-                <div class="editor-field">
-                    <label>题目文本</label>
-                    <textarea id="editText" rows="2">${escapeHtml(q.text)}</textarea>
-                </div>
-                <div class="editor-field">
-                    <label>正确答案</label>
-                    <div class="correct-select">
-                        <label><input type="radio" name="editCorrect" value="true" ${q.correctAnswer === true ? 'checked' : ''}> 正确</label>
-                        <label><input type="radio" name="editCorrect" value="false" ${q.correctAnswer === false ? 'checked' : ''}> 错误</label>
-                    </div>
-                </div>
-                <div class="editor-field">
-                    <label>解析</label>
-                    <textarea id="editExplanation" rows="2">${escapeHtml(q.explanation)}</textarea>
-                </div>
-                <div style="display:flex; gap:12px; margin-top:12px;">
-                    <button id="saveEditBtn" class="save-edit-btn">💾 保存修改</button>
-                    <button id="cancelEditBtn" class="icon-btn">取消</button>
-                    <button id="deleteQuestionBtn" class="danger-btn">🗑 删除本题</button>
-                </div>
-            </div>
-        `;
-    }
-    
-    function renderQuizView() {
-        const q = getCurrentQuestion();
-        if (!q) return `<div class="card">暂无题目，请联系管理员添加</div>`;
-        const isInWrong = wrongSet.has(q.id);
-        const isAdmin = currentUser?.role === 'admin';
-        return `
-            <div class="card">
-                <div class="extra-toolbar" style="display:flex; justify-content:flex-end; gap:12px; margin-bottom:16px;">
-                    <button class="icon-btn" id="removeCurrentWrongBtn" style="background:#fff0f0;">🗑 移出错题本</button>
-                </div>
-                <div class="question-header">
-                    <span class="q-num">题号 ${q.id}</span>
-                    ${isInWrong ? '<span class="wrong-status">⚠️ 已在错题本</span>' : ''}
-                </div>
-                <div class="question-text">${escapeHtml(q.text)}</div>
-                <div class="action-buttons">
-                    <button class="btn-option correct-btn" id="correctAnswerBtn">✅ 正确</button>
-                    <button class="btn-option wrong-btn" id="incorrectAnswerBtn">❌ 错误</button>
-                </div>
-                <div id="resultPanel" style="display:none;" class="result-area">
-                    <div id="feedbackMsg" class="feedback"></div>
-                    <div id="explanationText" class="explanation"></div>
-                </div>
-                <div class="nav-buttons">
-                    <button class="nav-btn" id="prevBtn">◀ 上一题</button>
-                    <span>第${currentIndex+1} / ${questionBank.length}题</span>
-                    <button class="nav-btn primary" id="nextBtn">下一题 ▶</button>
-                </div>
-                ${isAdmin ? `
-                <div class="admin-panel">
-                    <div class="admin-section-title">🛠️ 管理员配置 (可编辑题目)</div>
-                    <div class="flex-between" style="margin-bottom:12px;">
-                        <button id="editCurrentQuestionBtn" class="icon-btn" style="background:#e6f0ff;">✏️ 编辑本题</button>
-                        <button id="addQuestionBtn" class="icon-btn" style="background:#e6f7ec;">➕ 新增题目</button>
-                        <button id="resetAllDataBtn" class="danger-btn">重置题库(仅管理员)</button>
-                    </div>
-                    ${editingQuestionId === q.id ? renderEditorInline(q) : ''}
-                </div>
-                ` : ''}
-            </div>
-        `;
-    }
-    
-    function renderWrongListView() {
-        const wrongQuestions = questionBank.filter(q => wrongSet.has(q.id));
-        const isAdmin = currentUser?.role === 'admin';
-        if (wrongQuestions.length === 0) {
-            return `<div class="card"><div class="empty-tip">📭 暂无错题，继续加油～</div></div>`;
-        }
-        let wrongHtml = `<div class="card"><div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;"><h3>📖 错题本</h3><button id="clearAllWrongBtn" class="danger-btn">清空所有错题</button></div><div class="wrong-list-container">`;
-        wrongQuestions.forEach(q => {
-            wrongHtml += `
-                <div class="wrong-item">
-                    <div class="wrong-q-title">📌 题号：${q.id}</div>
-                    <div class="wrong-q-text">${escapeHtml(q.text)}</div>
-                    <div class="wrong-actions">
-                        <button class="small-btn primary practice-wrong" data-id="${q.id}">📖 练习本题</button>
-                        <button class="small-btn danger remove-wrong" data-id="${q.id}">🗑 移出错题本</button>
-                        ${isAdmin ? `<button class="small-btn edit-wrong-admin" data-id="${q.id}">✏️ 编辑</button>` : ''}
-                    </div>
-                </div>
-            `;
-        });
-        wrongHtml += `</div></div>`;
-        return wrongHtml;
-    }
-    
-    function attachEventListeners() {
-        document.querySelectorAll('.mode-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const mode = btn.getAttribute('data-mode');
-                if (mode === 'quiz') currentMode = 'quiz';
-                else if (mode === 'wrong') currentMode = 'wrong';
-                renderMainContent();
-            });
-        });
-        if (currentMode === 'quiz') {
-            const q = getCurrentQuestion();
-            if (q) {
-                document.getElementById('correctAnswerBtn')?.addEventListener('click', () => handleAnswer(true));
-                document.getElementById('incorrectAnswerBtn')?.addEventListener('click', () => handleAnswer(false));
-                document.getElementById('prevBtn')?.addEventListener('click', () => { if(questionBank.length) { currentIndex = (currentIndex - 1 + questionBank.length) % questionBank.length; saveProgress(); renderMainContent(); } });
-                document.getElementById('nextBtn')?.addEventListener('click', () => { if(questionBank.length) { currentIndex = (currentIndex + 1) % questionBank.length; saveProgress(); renderMainContent(); } });
-                document.getElementById('removeCurrentWrongBtn')?.addEventListener('click', () => { const cur = getCurrentQuestion(); if(cur) removeFromWrongSet(cur.id); });
-                if (currentUser?.role === 'admin') {
-                    document.getElementById('editCurrentQuestionBtn')?.addEventListener('click', () => { editingQuestionId = getCurrentQuestion().id; renderMainContent(); });
-                    document.getElementById('addQuestionBtn')?.addEventListener('click', () => addNewQuestion());
-                    document.getElementById('resetAllDataBtn')?.addEventListener('click', () => resetAllData());
-                    const saveEdit = document.getElementById('saveEditBtn');
-                    if (saveEdit) saveEdit.addEventListener('click', () => {
-                        const newText = document.getElementById('editText').value;
-                        const correctVal = document.querySelector('input[name="editCorrect"]:checked')?.value;
-                        const newExplanation = document.getElementById('editExplanation').value;
-                        if (newText && correctVal) saveQuestionEdit(editingQuestionId, newText, correctVal === 'true', newExplanation);
-                        else alert("请填写完整");
-                    });
-                    document.getElementById('cancelEditBtn')?.addEventListener('click', () => { editingQuestionId = null; renderMainContent(); });
-                    document.getElementById('deleteQuestionBtn')?.addEventListener('click', () => { if(editingQuestionId) deleteQuestion(editingQuestionId); });
-                }
-            }
-        } else if (currentMode === 'wrong') {
-            document.querySelectorAll('.practice-wrong').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const id = btn.getAttribute('data-id');
-                    const idx = questionBank.findIndex(q => q.id === id);
-                    if (idx !== -1) { currentIndex = idx; currentMode = 'quiz'; saveProgress(); renderMainContent(); }
-                });
-            });
-            document.querySelectorAll('.remove-wrong').forEach(btn => {
-                btn.addEventListener('click', (e) => { const id = btn.getAttribute('data-id'); removeFromWrongSet(id); });
-            });
-            document.getElementById('clearAllWrongBtn')?.addEventListener('click', () => clearAllWrong());
-            if (currentUser?.role === 'admin') {
-                document.querySelectorAll('.edit-wrong-admin').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        const id = btn.getAttribute('data-id');
-                        editingQuestionId = id;
-                        currentMode = 'quiz';
-                        const targetIdx = questionBank.findIndex(q => q.id === id);
-                        if (targetIdx !== -1) currentIndex = targetIdx;
-                        renderMainContent();
-                    });
-                });
-            }
-        }
-    }
-    
-    function renderMainContent() {
-        if (!currentUser) return;
-        const modeBar = `
-            <div class="mode-bar">
-                <button class="mode-btn ${currentMode === 'quiz' ? 'active' : ''}" data-mode="quiz">📝 刷题模式</button>
-                <button class="mode-btn ${currentMode === 'wrong' ? 'active' : ''}" data-mode="wrong">📚 错题本</button>
-            </div>
-        `;
-        const content = currentMode === 'quiz' ? renderQuizView() : renderWrongListView();
-        const roleText = currentUser.role === 'admin' ? '管理员 (可编辑题目)' : '普通用户';
-        const adminHeader = `
-            <div class="admin-header">
-                <div class="user-badge">👤 ${currentUser.username} <span class="role-tag">${roleText}</span> | 共 ${questionBank.length} 题</div>
-                <button id="logoutBtn" class="logout-btn">🚪 退出登录</button>
-            </div>
-        `;
-        appRoot.innerHTML = adminHeader + modeBar + content;
-        attachEventListeners();
-    }
-    
-    function escapeHtml(str) { return String(str).replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
-    
-    function showLogin() {
-        appRoot.innerHTML = `
-            <div class="login-overlay">
-                <div class="login-card">
-                    <h2>📚 双角色登录</h2>
-                    <input type="text" id="loginUsername" class="login-input" placeholder="用户名" autocomplete="off">
-                    <input type="password" id="loginPassword" class="login-input" placeholder="密码">
-                    <button id="doLoginBtn" class="login-btn">登录</button>
-                    <div id="loginError" class="error-msg"></div>                  
-                </div>
-            </div>
-        `;
-        document.getElementById('doLoginBtn')?.addEventListener('click', () => {
-            const user = document.getElementById('loginUsername').value.trim();
-            const pwd = document.getElementById('loginPassword').value.trim();
-            if ((user === 'admin' && pwd === 'admin_123')) {
-                currentUser = { username: 'admin', role: 'admin' };
-                loadQuestionsFromLocal();
-                loadWrongSet();
-                loadProgress();
-                renderMainContent();
-            } else if ((user === 'user' && pwd === 'user_123456')) {
-                currentUser = { username: 'user', role: 'user' };
-                loadQuestionsFromLocal();
-                loadWrongSet();
-                loadProgress();
-                renderMainContent();
-            } else {
-                document.getElementById('loginError').innerText = '用户名或密码错误';
+                renderWrongList();
+                wrongListContainer.classList.add('show');
             }
         });
-    }
-    
-    function init() {
-        showLogin();
-    }
-    init();
+
+        clearWrongBtn.addEventListener('click', clearWrongBook);
+
+        // 初始加载时保持登录界面
+        // 但可以预填充
+        window.addEventListener('load', function() {
+            // 默认显示登录
+            loginContainer.style.display = 'block';
+            quizPanel.style.display = 'none';
+        });
+
+        // 暴露reset用于调试 (可选)
+        console.log('刷题系统已加载，共 ' + questions.length + ' 题');
+    })();
 </script>
 </body>
 </html>
