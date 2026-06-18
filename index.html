@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>判断题 · 错题刷题系统</title>
+    <title>判断题 · 错题刷题系统 (状态保存)</title>
     <style>
         * {
             margin: 0;
@@ -23,7 +23,6 @@
             max-width: 860px;
             padding: 20px;
         }
-        /* 登录卡片 */
         .login-card {
             background: white;
             border-radius: 32px;
@@ -84,7 +83,6 @@
             margin-top: 12px;
             min-height: 24px;
         }
-        /* 主刷题面板 */
         .quiz-panel {
             background: white;
             border-radius: 32px;
@@ -126,7 +124,6 @@
             color: #1f3a5f;
             font-size: 15px;
         }
-        /* 题目卡片 */
         .question-box {
             background: #f9fcff;
             border-radius: 24px;
@@ -365,6 +362,13 @@
             text-align: center;
             padding: 16px 0;
         }
+        .status-badge {
+            font-size: 13px;
+            background: #e6edf6;
+            padding: 4px 14px;
+            border-radius: 40px;
+            color: #1f3a5f;
+        }
         @media (max-width: 600px) {
             .login-card { padding: 32px 20px; }
             .quiz-panel { padding: 20px 16px; }
@@ -380,7 +384,7 @@
     <!-- 登录 -->
     <div id="loginContainer" class="login-card">
         <h2>📘 错题刷题</h2>
-        <p>登录以继续 · 判断题专项</p>
+        <p>登录以继续 · 状态自动保存</p>
         <input type="text" id="usernameInput" placeholder="用户名" value="">
         <input type="password" id="passwordInput" placeholder="密码" value="">
         <button id="loginBtn">登 录</button>
@@ -393,6 +397,7 @@
             <div class="title">
                 📝 错题练习
                 <span id="totalCounter">0</span>
+                <span class="status-badge" id="saveStatus">💾 已保存</span>
             </div>
             <div class="progress-badge" id="progressLabel">1 / 1</div>
         </div>
@@ -430,7 +435,7 @@
 </div>
 <script>
     (function(){
-        // ---------- 原始题库 (155道判断题) ----------
+        // ---------- 原始题库 (155道) ----------
         const rawQuestions = [
             { id: 1082, text: "ETL 数据整合工具是一种硬件，用于把数据从源系统中提取出来，经过转换后加载到目标系统。", answer: false, analysis: "ETL数据整合工具是用于将数据从源系统提取、转换和加载到目标系统中的软件。" },
             { id: 1083, text: "当数据样本数量较少时，简单的算法更容易产生过拟合现象。", answer: false, analysis: "数据样本量过少会限制模型从训练数据中学习到足够的特征和模式，导致模型不能充分捕捉数据中的复杂性，进而出现欠拟合。欠拟合是指模型过于简单，无法很好地拟合训练数据的规律，因此，样本量过少通常会使得模型容易欠拟合。" },
@@ -581,7 +586,10 @@
         let wrongIds = new Set();           // 存题目id (错题)
         let isLoggedIn = false;
 
-        // DOM 引用
+        // ---------- 本地存储 key ----------
+        const STORAGE_KEY = 'quiz_state_v2';
+
+        // ---------- DOM 引用 ----------
         const loginContainer = document.getElementById('loginContainer');
         const quizPanel = document.getElementById('quizPanel');
         const loginBtn = document.getElementById('loginBtn');
@@ -606,14 +614,60 @@
         const wrongListContainer = document.getElementById('wrongListContainer');
         const wrongListContent = document.getElementById('wrongListContent');
         const wrongCount = document.getElementById('wrongCount');
+        const saveStatus = document.getElementById('saveStatus');
 
-        // ---------- 辅助函数 ----------
+        // ---------- 存储函数 ----------
+        function saveState() {
+            if (!isLoggedIn) return;
+            const state = {
+                currentIndex: currentIndex,
+                userAnswers: userAnswers,      // 数组 (null, true, false)
+                wrongIds: Array.from(wrongIds)  // Set 转数组
+            };
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+                saveStatus.textContent = '💾 已保存';
+                saveStatus.style.color = '#1e8b3c';
+            } catch (e) {
+                console.warn('保存状态失败', e);
+            }
+        }
+
+        function loadState() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (!raw) return false;
+                const state = JSON.parse(raw);
+                if (!state || typeof state !== 'object') return false;
+                // 检查数据结构
+                if (!Array.isArray(state.userAnswers) || state.userAnswers.length !== questions.length) return false;
+                if (typeof state.currentIndex !== 'number' || state.currentIndex < 0 || state.currentIndex >= questions.length) return false;
+                if (!Array.isArray(state.wrongIds)) return false;
+
+                currentIndex = state.currentIndex;
+                userAnswers = state.userAnswers.slice(); // 复制
+                wrongIds = new Set(state.wrongIds);
+                return true;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        // 自动保存 (防抖)
+        let saveTimer = null;
+        function autoSave() {
+            if (saveTimer) clearTimeout(saveTimer);
+            saveTimer = setTimeout(() => {
+                saveState();
+                saveTimer = null;
+            }, 300);
+        }
+
+        // ---------- 渲染 ----------
         function renderQuestion(index) {
             const q = questions[index];
             if (!q) return;
-            // 题目文本
             questionDisplay.innerHTML = `<span class="question-id">#${q.id}</span> ${q.text}`;
-            // 选项 (对/错)
             optionsContainer.innerHTML = '';
             const labels = ['正确', '错误'];
             const values = [true, false];
@@ -639,28 +693,23 @@
                 optionsContainer.appendChild(div);
             });
 
-            // 更新反馈区域 (如果已选)
             if (selected !== null) {
                 showFeedback(index);
             } else {
                 feedbackArea.classList.remove('show', 'feedback-correct', 'feedback-wrong');
             }
 
-            // 更新导航按钮
             prevBtn.disabled = (index === 0);
             nextBtn.disabled = (index === questions.length - 1);
             progressLabel.textContent = `${index+1} / ${questions.length}`;
             totalCounter.textContent = questions.length;
-            // 跳转输入框同步
             jumpInput.value = index + 1;
-
-            // 滚动到顶部
-            quizPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            // 保存状态 (自动)
+            autoSave();
         }
 
         function handleOptionSelect(index, value) {
             userAnswers[index] = value;
-            // 判断对错，更新错题本
             const q = questions[index];
             const isCorrect = (value === q.answer);
             if (!isCorrect) {
@@ -668,13 +717,12 @@
             } else {
                 wrongIds.delete(q.id);
             }
-            // 重新渲染当前题目 (更新样式 & 反馈)
             renderQuestion(index);
             updateWrongCount();
-            // 如果错题列表打开，刷新列表
             if (wrongListContainer.classList.contains('show')) {
                 renderWrongList();
             }
+            // 保存状态已在 renderQuestion 中触发 autoSave
         }
 
         function showFeedback(index) {
@@ -694,12 +742,13 @@
 
         function updateWrongCount() {
             wrongCount.textContent = wrongIds.size;
-            // 同时更新错题本按钮状态
             if (wrongIds.size === 0) {
                 wrongBookToggle.classList.remove('active');
             } else {
                 wrongBookToggle.classList.add('active');
             }
+            // 存储错题数据
+            autoSave();
         }
 
         function renderWrongList() {
@@ -708,7 +757,6 @@
                 return;
             }
             let html = '';
-            // 按照题目id 排序
             const sortedIds = Array.from(wrongIds).sort((a,b)=>a-b);
             sortedIds.forEach(id => {
                 const q = questions.find(item => item.id === id);
@@ -720,25 +768,21 @@
                 </div>`;
             });
             wrongListContent.innerHTML = html;
-            // 绑定跳转事件
             wrongListContent.querySelectorAll('button[data-idx]').forEach(btn => {
                 btn.addEventListener('click', function(e) {
                     const idx = parseInt(this.dataset.idx, 10);
                     if (!isNaN(idx) && idx >=0 && idx < questions.length) {
                         currentIndex = idx;
                         renderQuestion(currentIndex);
-                        // 关闭错题列表
                         wrongListContainer.classList.remove('show');
                     }
                 });
             });
         }
 
-        // 重置当前题目选中状态 (不清除错题)
         function resetCurrentQuestion() {
             const idx = currentIndex;
             userAnswers[idx] = null;
-            // 但错题本中如果有这道题，要移除 (因为重置相当于取消作答)
             const q = questions[idx];
             wrongIds.delete(q.id);
             renderQuestion(idx);
@@ -746,46 +790,60 @@
             if (wrongListContainer.classList.contains('show')) renderWrongList();
         }
 
-        // 清空所有错题 (仅清除错题本，不影响已选状态)
         function clearWrongBook() {
             if (wrongIds.size === 0) return;
             if (confirm('确定要清空所有错题记录吗？')) {
                 wrongIds.clear();
                 updateWrongCount();
                 renderWrongList();
-                // 重新渲染当前题，去掉错误标记（但保留已选答案）
                 renderQuestion(currentIndex);
+                autoSave();
             }
         }
 
-        // ---------- 登录逻辑 ----------
+        // ---------- 登录 ----------
         function handleLogin() {
             const user = usernameInput.value.trim();
             const pass = passwordInput.value.trim();
-            
-			if(user == 'admin' && pass == 'admin_123'){
-				isAdmin = true;			
-							
-			} else if(user == 'user' && pass == 'user_123456'){
-				isAdmin = false;				
-							
-			} else{
-				isAdmin = null;
-				loginError.textContent = '用户名密码错误，请重试';
+            if ((user === 'admin' && pass === 'admin_123')) {
+                currentUser = { username: 'admin', role: 'admin' };                
+            } else if ((user === 'user' && pass === 'user_123456')) {
+                currentUser = { username: 'user', role: 'user' };                
+            } else {
+                loginError.textContent = '用户名或密码错误';
 				return;
-			}
-            // 任意非空即登录成功
+            }
             isLoggedIn = true;
             loginContainer.style.display = 'none';
             quizPanel.style.display = 'block';
-            // 初始化题目
-            currentIndex = 0;
-            userAnswers = new Array(questions.length).fill(null);
-            wrongIds.clear();
-            renderQuestion(0);
+
+            // 尝试加载状态
+            const hasState = loadState();
+            if (!hasState) {
+                // 初始化
+                currentIndex = 0;
+                userAnswers = new Array(questions.length).fill(null);
+                wrongIds.clear();
+            }
+            // 确保 wrongIds 与 userAnswers 一致 (如果加载状态，可能有些错题但答案被修改，但一般没问题)
+            // 额外校验：如果某题在 wrongIds 中但答案正确，移除
+            for (let i = 0; i < questions.length; i++) {
+                const ans = userAnswers[i];
+                if (ans !== null) {
+                    const q = questions[i];
+                    if (ans === q.answer) {
+                        wrongIds.delete(q.id);
+                    } else {
+                        wrongIds.add(q.id);
+                    }
+                }
+            }
+
+            renderQuestion(currentIndex);
             updateWrongCount();
             renderWrongList();
             loginError.textContent = '';
+            saveState(); // 初次保存
         }
 
         // ---------- 事件绑定 ----------
@@ -836,16 +894,19 @@
 
         clearWrongBtn.addEventListener('click', clearWrongBook);
 
-        // 初始加载时保持登录界面
-        // 但可以预填充
-        window.addEventListener('load', function() {
-            // 默认显示登录
-            loginContainer.style.display = 'block';
-            quizPanel.style.display = 'none';
+        // 页面关闭或刷新时保存
+        window.addEventListener('beforeunload', function() {
+            if (isLoggedIn) saveState();
         });
 
-        // 暴露reset用于调试 (可选)
-        console.log('刷题系统已加载，共 ' + questions.length + ' 题');
+        // 初始显示登录
+        window.addEventListener('load', function() {
+            loginContainer.style.display = 'block';
+            quizPanel.style.display = 'none';
+            // 清除过期保存状态标记 (但保留存储)
+            console.log('刷题系统已加载，共 ' + questions.length + ' 题，支持状态保存');
+        });
+
     })();
 </script>
 </body>
